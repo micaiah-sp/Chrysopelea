@@ -131,6 +131,10 @@ x""".format(cmd)
 	def alpha(self):
 		return self.get_output('Alpha')
 
+	def scale(self, factor):
+		for s in self.surfaces.keys():
+			self.surfaces[s].scale(factor)
+
 ############### Surface Class #######################
 
 class Surface(object):
@@ -224,6 +228,7 @@ AFILE
 				s.add_section(coord,chord)
 		return s
 
+
 ############### XFOIL class #############################
 
 class xfoil(object):
@@ -273,10 +278,23 @@ quit
 ############### flight dynamics class ######################
 
 class dynamic(avl):
+	weight = 1
+	rho = 1.225
 
+	@property
 	def cd0(self):
 		c = 0
 		for k in self.surfaces.keys():
 			c += self.surfaces[k].cd0*self.surfaces[k].area
 		c /= self.area
 		return c
+
+	def q(self,v):
+		return 0.5*self.rho*v**2
+
+	def drag(self,v):
+		q = self.q(v)
+		cl = self.weight/(self.area*q)
+		self.set_attitude(cl=cl)
+		print(self.cd0,self.cdi)
+		return q*self.area*(self.cd0 + self.cdi)

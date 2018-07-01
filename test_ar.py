@@ -3,8 +3,10 @@ from chrysopelea import *
 bb9 = dynamic('BB7.avl')
 bb9.pop('VerTail')
 bb9.pop('HTail')
-bb9.set_attitude(cl=1)
-print(bb9.cl,bb9.cdi,bb9.alpha)
-bb9.set_attitude(cl = 0)
-print(bb9.cl,bb9.cdi,bb9.alpha)
-print(bb9.cd0)
+
+def fps(mph):
+	return mph*5280/3600
+
+bb9.weight = 35
+bb9.rho = 0.0023769
+print(bb9.drag(fps(50)))
