@@ -1,0 +1,144 @@
+
+ ===================================================
+  Athena Vortex Lattice  Program      Version  3.36
+  Copyright (C) 2002   Mark Drela, Harold Youngren
+
+  This software comes with ABSOLUTELY NO WARRANTY,
+    subject to the GNU General Public License.
+
+  Caveat computor
+ ===================================================
+
+ ==========================================================
+   Quit    Exit program
+
+  .OPER    Compute operating-point run cases
+  .MODE    Eigenvalue analysis of run cases
+  .TIME    Time-domain calculations
+
+   LOAD f  Read configuration input file
+   MASS f  Read mass distribution file
+   CASE f  Read run case file
+
+   CINI    Clear and initialize run cases
+   MSET i  Apply mass file data to stored run case(s)
+
+  .PLOP    Plotting options
+   NAME s  Specify new configuration name
+
+ AVL   c>  
+ AVL   c>  
+ Reading file: ar_test.avl  ...
+
+ Configuration: Advanced                                                    
+
+   Building surface: Wing                                    
+     Reading airfoil from file: nlf0215f-il.dat
+     Reading airfoil from file: nlf0215f-il.dat
+     Reading airfoil from file: sd7062.dat
+     Reading airfoil from file: sd7062.dat
+     Reading airfoil from file: sd7062.dat
+  
+   Building duplicate image-surface: Wing (YDUP)                             
+
+ Mach =    0.0000  (default)
+
+    0 Bodies
+    2 Solid surfaces
+   40 Strips
+  400 Vortices
+
+    1 Control variables
+    0 Design parameters
+
+ Initializing run cases...
+
+ AVL   c>  
+ Operation of run case 1/1:   -unnamed-                              
+ ==========================================================
+
+  variable          constraint              
+  ------------      ------------------------
+  A lpha        ->  alpha       =   0.000         
+  B eta         ->  beta        =   0.000         
+  R oll  rate   ->  pb/2V       =   0.000         
+  P itch rate   ->  qc/2V       =   0.000         
+  Y aw   rate   ->  rb/2V       =   0.000         
+  D1  Aileron   ->  Aileron     =   0.000         
+  ------------      ------------------------
+
+  C1  set level or banked  horizontal flight constraints
+  C2  set steady pitch rate (looping) flight constraints
+  M odify parameters                                    
+
+ "#" select  run case          L ist defined run cases   
+  +  add new run case          S ave run cases to file   
+  -  delete  run case          F etch run cases from file
+  N ame current run case       W rite forces to file     
+
+ eX ecute run case             I nitialize variables     
+
+  G eometry plot               T refftz Plane plot       
+
+  ST  stability derivatives    FT  total   forces        
+  SB  body-axis derivatives    FN  surface forces        
+  RE  reference quantities     FS  strip   forces        
+  DE  design changes           FE  element forces        
+  O ptions                     FB  body forces           
+                               HM  hinge moments         
+                               VM  strip shear,moment    
+
+ .OPER (case 1/1)   c>  
+ =========================================
+  K eystroke mode       V iewpoint        
+  A nnotate plot        O ptions          
+  H ardcopy plot        S elect surfaces  
+  Z oom                 U nzoom           
+
+  CH ordline    T       CA amber        F
+  CN tlpoint    F       TR ailing legs  F
+  BO ound leg   T       NO rmal vector  F
+  LO ading      F       AX es, xyz ref. T
+
+ Geometry plot command: 
+  ------------------------------------------------
+  Type keys in graphics window...
+
+    L eft               R ight        (Azimuth  ) 
+    U p                 D own         (Elevation) 
+    C lear
+
+    P an from cursor    Z oom on cursor           
+    I ngress            E xpand on cursor         
+    O utgress           N ormal size              
+
+    H ardcopy           A nnotate plot            
+
+  ...<space> to exit  
+  ------------------------------------------------
+
+ =========================================
+  K eystroke mode       V iewpoint        
+  A nnotate plot        O ptions          
+  H ardcopy plot        S elect surfaces  
+  Z oom                 U nzoom           
+
+  CH ordline    T       CA amber        F
+  CN tlpoint    F       TR ailing legs  F
+  BO ound leg   T       NO rmal vector  F
+  LO ading      F       AX es, xyz ref. T
+
+ Geometry plot command:   * Unrecognized command
+
+ =========================================
+  K eystroke mode       V iewpoint        
+  A nnotate plot        O ptions          
+  H ardcopy plot        S elect surfaces  
+  Z oom                 U nzoom           
+
+  CH ordline    T       CA amber        F
+  CN tlpoint    F       TR ailing legs  F
+  BO ound leg   T       NO rmal vector  F
+  LO ading      F       AX es, xyz ref. T
+
+ Geometry plot command: 

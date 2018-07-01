@@ -1,0 +1,120 @@
+Advanced
+#MACH
+0
+#IYsym 	IZsym 	Zsym 	Vehicle Symmetry
+0 	0 	0
+#Sref 	Cref 	Bref 	Reference Area and Lengths
+2804.5875	19.476	144
+#Xref 	Yref 	Zref 	Center of Gravity Location
+4.5 	0 	0
+
+#==============================================
+SURFACE
+Wing
+#Nchord 	Cspace 	Nspan 	Sspace
+10 	1 	20 	1
+YDUPLICATE
+0
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+-9.5 	0 	0 	35 	0 	0 	0
+AFILE
+nlf0215f-il.dat
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+-9.5 	4.5 	0 	35 	0 	0 	0
+AFILE
+nlf0215f-il.dat
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+0 	13.5 	2 	18.3 	0 	0 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+0 	41 	2 	18.3 	0 	0 	0
+AFILE
+sd7062.dat
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Aileron 	-1 	0.7 	0 	0 	0 	-1
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+0 	72 	2 	14 	0 	0 	0
+AFILE
+sd7062.dat
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Aileron 	-1 	0.7 	0 	0 	0 	-1
+
+#==============================================
+SURFACE
+HTail
+#Nchord 	Cspace 	Nspan 	Sspace
+10 	1 	20 	1
+YDUPLICATE
+0
+TRANSLATE
+#deltaX deltaY deltaZ
+50.125	0	2.5
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+0 	0 	0 	10 	0 	0 	0
+NACA
+0012
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Elevator 	1 	0.5 	0 	0 	0 	1
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+0 	14 	0 	10 	0 	0 	0
+NACA
+0012
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Elevator 	1 	0.5 	0 	0 	0 	1
+
+#==============================================
+SURFACE
+VerTail
+#Nchord 	Cspace 	Nspan 	Sspace
+10 	1 	20 	1
+YDUPLICATE
+0
+TRANSLATE
+#deltaX deltaY deltaZ
+50.125	0	2.5
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+0 	13.5 	0 	5 	0 	0 	0
+NACA
+0012
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Rudder 	-1 	1 	0 	0 	0 	1
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+.833 	13.5 	2.5 	9.16 	0 	0 	0
+NACA
+0012
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Rudder 	-1 	0.455 	0 	0 	0 	1
+#----------------------------------------------
+SECTION
+#Xle 	Yle 	Zle 	Chord 	Ainc 	Nspan 	Sspace
+4 	13.5 	12 	6 	0 	0 	0
+NACA
+0012
+CONTROL
+#NAME 	GAIN 	XHinge 	XHVEC 	YHVEC 	ZHVEC 	SGNDUP
+Rudder 	-1 	0.166 	0 	0 	0 	1

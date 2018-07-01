@@ -1,0 +1,22 @@
+single:
+cdi=0.0258818
+CLtot =   0.64255
+biplane:
+cdi=0.0464780
+CLtot =   1.06372
+tandem:
+cdi=0.0523950
+double:
+cdi=0.043
+
+tail:
+cdi=0.0360087
+canard:
+cdi=0.0406240
+
+BB7:
+cdi=0.0168567
+CLtot=0.59186
+^ar0.75:
+CLtot=0.54952
+cdi=0.0186817

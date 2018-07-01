@@ -1,0 +1,5 @@
+load change_ar.avl
+oper
+a
+a 3
+x
