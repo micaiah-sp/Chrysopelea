@@ -238,10 +238,12 @@ class xfoil(object):
 	@property
 	def load_cmd(self):
 		return "load {}".format(self.file)
+
 	@property
 	def cd0(self):
 		oper = "alfa 0"
-		return self.execute(oper)
+		self.execute(oper)
+		return self.output.loc[self.output['alpha'] == 0]['CD'][0]
 
 	def execute(self,oper):
 		input = open("chrysopelea.xin",'w')
@@ -259,11 +261,15 @@ quit""".format(self.load_cmd,self.re,oper)
 		input.close()
 		subprocess.run("xfoil<chrysopelea.xin>chrysopelea.xot",shell=True)
 
-		output = open("chrysopelea_xfoil.dat")
-		text = output.read()
-		output.close()
+		file = open("chrysopelea_xfoil.dat")
+		text = file.read()
+		file.close()
+		csv = io.StringIO(re.sub(' +',',',text))
+		output = pd.read_csv(csv,skiprows = list(range(10)) + [11])
+		output.dropna(axis=1,inplace=True)
 		subprocess.run("rm chrysopelea.xin chrysopelea.xot chrysopelea_xfoil.dat",shell=True)
-		
+		self.output = output
+		return output
 
 ############### flight dynamics class ######################
 
