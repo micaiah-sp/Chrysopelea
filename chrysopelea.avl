@@ -1,0 +1,48 @@
+
+Advanced
+#MACH
+0
+#IYsym		IZsym		Zsym		Vehicle Symmetry
+0 	0 	0
+#Sref		Cref		Bref		Reference Area and Lengths
+2802.5		19.461805555555557		144.0
+#Xref	 	Yref	 	Zref	 	Center of Gravity Location
+0 		0	 	0
+
+#==============================================
+SURFACE
+Wing
+#Nchord		Cspace		Nspan		Sspace
+10 		1 		20 		1
+YDUPLICATE
+0
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+-9.5	 	0.0	 	0.0	 	35.0	 	0	 	0	 	0
+AFILE
+nlf0215f-il.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+-9.5	 	4.5	 	0.0	 	35.0	 	0	 	0	 	0
+AFILE
+nlf0215f-il.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	13.5	 	2.0	 	18.3	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	41.0	 	2.0	 	18.3	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	72.0	 	2.0	 	14.0	 	0	 	0	 	0
+AFILE
+sd7062.dat

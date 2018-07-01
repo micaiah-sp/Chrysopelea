@@ -17,8 +17,17 @@ class avl(object):
 	surfaces = {}
 	output = None
 
-	def __init__(self):
+	def __init__(self,file=None):
 		self.surfaces = avl.surfaces.copy()
+		if file != None:
+			file_obj = open(file)
+			text = file_obj.read()
+			file_obj.close()
+
+			text = re.sub('#.*','',text)
+			stexts = re.split('SURFACE\n',text)[1:]
+			for stext in stexts:
+				self.add_surface(Surface.from_text(stext))
 
 	def __repr__(self):
 		return "AVL interface object with surfaces {}".format(self.surfaces)
@@ -89,18 +98,6 @@ quit
 g
 k"""
 		return self.execute(operations)
-
-	def from_file(path):
-		a = avl()
-		file = open(path)
-		text = file.read()
-		file.close()
-
-		text = re.sub('#.*','',text)
-		stexts = re.split('SURFACE\n',text)[1:]
-		for stext in stexts:
-			a.add_surface(Surface.from_text(stext))
-		return a
 
 	def pop(self, surname):
 		if surname in self.surfaces:
@@ -196,15 +193,17 @@ AFILE
 	@property
 	def mean_chord(self):
 		return self.area/self.span
-	def area(self):
-		a = 0
+	@property
+	def cd0(self):
+		c = 0
 		keys = list(self.sections)
 		for n in range(1,len(keys)):
-			a += 0.5*abs(keys[n][1] - keys[n-1][1])*\
-(self.sections[keys[n]][0]*self.sections[keys[n]][1] + self.sections[keys[n-1]][0]*self.sections[keys[n]][1])
+			c0 = xfoil(self.sections[keys[n]][1]).cd0
+			c1 = xfoil(self.sections[keys[n-1]][1]).cd0
+			c += 0.5*abs(keys[n][1] - keys[n-1][1])*(self.sections[keys[n]][0]*c0 + self.sections[keys[n-1]][0]*c1)
 		if self.yduplicate != "":
-			a *= 2
-		return a
+			c *= 2
+		return c/self.area
 
 	def from_text(text):
 		text = re.sub('\n+','\n',text)
@@ -225,16 +224,15 @@ AFILE
 				s.add_section(coord,chord)
 		return s
 
-	def airfoil_drag(filename):
-		if filename == 'sd7062.dat':
-			return
-
 ############### XFOIL class #############################
 
 class xfoil(object):
-	file = "sd7062.dat"
 	re = 450000
 	output = None
+
+	def __init__(self, file = "sd7062"):
+		self.file = file
+
 	@property
 	def load_cmd(self):
 		return "load {}".format(self.file)
@@ -256,7 +254,8 @@ pacc
 chrysopelea_xfoil.dat
 
 {}
-quit""".format(self.load_cmd,self.re,oper)
+quit
+""".format(self.load_cmd,self.re,oper)
 		input.write(cmd)
 		input.close()
 		subprocess.run("xfoil<chrysopelea.xin>chrysopelea.xot",shell=True)
@@ -279,3 +278,5 @@ class dynamic(avl):
 		c = 0
 		for k in self.surfaces.keys():
 			c += self.surfaces[k].cd0*self.surfaces[k].area
+		c /= self.area
+		return c
