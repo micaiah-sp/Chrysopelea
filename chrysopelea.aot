@@ -107,7 +107,7 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  CL          =  0.1954E-02     
+  A lpha        ->  CL          =  0.2814         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
@@ -142,9 +142,8 @@
   Building bound-vortex velocity matrix...
 
  iter d(alpha)   d(beta)    d(pb/2V)   d(qc/2V)   d(rb/2V)  
-   1 -0.454E+01 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
-   2  0.142E-01 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
-   3 -0.237E-07 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
+   1 -0.980E+00 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
+   2  0.105E-02 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
  ---------------------------------------------------------------
  Vortex Lattice Output -- Total Forces
 
@@ -153,26 +152,26 @@
      # Strips   =  40
      # Vortices = 400
 
-  Sref =  2802.5       Cref =  19.462       Bref =  144.00    
+  Sref =  19.462       Cref =  1.6218       Bref =  12.000    
   Xref =  0.0000       Yref =  0.0000       Zref =  0.0000    
 
  Standard axis orientation,  X fwd, Z down         
 
  Run case:  -unnamed-                              
 
-  Alpha =  -4.52988     pb/2V =  -0.00000     p'b/2V =  -0.00000
+  Alpha =  -0.97856     pb/2V =  -0.00000     p'b/2V =  -0.00000
   Beta  =   0.00000     qc/2V =   0.00000
   Mach  =     0.000     rb/2V =  -0.00000     r'b/2V =  -0.00000
 
-  CXtot =  -0.00098     Cltot =   0.00000     Cl'tot =   0.00000
-  CYtot =   0.00000     Cmtot =  -0.11177
-  CZtot =  -0.00188     Cntot =  -0.00000     Cn'tot =   0.00000
+  CXtot =  -0.00922     Cltot =  -0.00000     Cl'tot =  -0.00000
+  CYtot =  -0.00000     Cmtot =  -0.16313
+  CZtot =  -0.28127     Cntot =   0.00000     Cn'tot =   0.00000
 
-  CLtot =   0.00195
-  CDtot =   0.00082
-  CDvis =   0.00000     CDind = 0.0008236
-  CLff  =   0.00145     CDff  = 0.0007110    | Trefftz
-  CYff  =   0.00000         e =    0.0001    | Plane  
+  CLtot =   0.28139
+  CDtot =   0.00442
+  CDvis =   0.00000     CDind = 0.0044168
+  CLff  =   0.28079     CDff  = 0.0043788    | Trefftz
+  CYff  =  -0.00000         e =    0.7746    | Plane  
 
 
  ---------------------------------------------------------------
@@ -182,7 +181,7 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  CL          =  0.1954E-02     
+  A lpha        ->  CL          =  0.2814         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
@@ -218,7 +217,7 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  CL          =  0.1954E-02     
+  A lpha        ->  CL          =  0.2814         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         

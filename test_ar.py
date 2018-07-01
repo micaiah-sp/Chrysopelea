@@ -9,4 +9,6 @@ def fps(mph):
 
 bb9.weight = 35
 bb9.rho = 0.0023769
-print(bb9.drag(fps(50)))
+bb9.scale(1/12)
+bb9.extra_drag = 0.0049*bb9.area
+print(bb9.ar)

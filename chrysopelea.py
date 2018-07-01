@@ -67,6 +67,13 @@ Advanced
 		else:
 			return 1
 
+	@property
+	def ar(self,ref_surf_name='Wing'):
+		if ref_surf_name in self.surfaces.keys():
+			return self.surfaces[ref_surf_name].ar
+		else:
+			return 1
+
 	def add_surface(self,surf):
 		if type(surf) == str:
 			self.surfaces[surf] = Surface(surf)
@@ -131,6 +138,9 @@ x""".format(cmd)
 	def alpha(self):
 		return self.get_output('Alpha')
 
+	def e(self):
+		return self.get_output('e')
+
 	def scale(self, factor):
 		for s in self.surfaces.keys():
 			self.surfaces[s].scale(factor)
@@ -194,9 +204,13 @@ AFILE
 		if self.yduplicate != "":
 			b *= 2
 		return b
+
 	@property
 	def mean_chord(self):
 		return self.area/self.span
+	@property
+	def ar(self):
+		return self.span/self.mean_chord
 	@property
 	def cd0(self):
 		c = 0
@@ -228,12 +242,19 @@ AFILE
 				s.add_section(coord,chord)
 		return s
 
+	def scale(self, factor):
+		d = self.sections
+		self.sections = OrderedDict()
+		for k in list(d):
+			self.sections[(k[0]*factor,k[1]*factor,k[2]*factor)] = (d[k][0]*factor,d[k][1])
+
 
 ############### XFOIL class #############################
 
 class xfoil(object):
 	re = 450000
 	output = None
+	computed = {}
 
 	def __init__(self, file = "sd7062"):
 		self.file = file
@@ -244,9 +265,13 @@ class xfoil(object):
 
 	@property
 	def cd0(self):
-		oper = "alfa 0"
-		self.execute(oper)
-		return self.output.loc[self.output['alpha'] == 0]['CD'][0]
+		if self.file in xfoil.computed:
+			return xfoil.computed[self.file]
+		else:
+			oper = "alfa 8"
+			self.execute(oper)
+			xfoil.computed[self.file] = self.output.iloc[0]['CD']
+			return self.cd0
 
 	def execute(self,oper):
 		input = open("chrysopelea.xin",'w')
@@ -280,21 +305,16 @@ quit
 class dynamic(avl):
 	weight = 1
 	rho = 1.225
+	extra_drag = 0		# D/q
 
 	@property
 	def cd0(self):
 		c = 0
 		for k in self.surfaces.keys():
 			c += self.surfaces[k].cd0*self.surfaces[k].area
+		c += self.extra_drag
 		c /= self.area
 		return c
 
 	def q(self,v):
 		return 0.5*self.rho*v**2
-
-	def drag(self,v):
-		q = self.q(v)
-		cl = self.weight/(self.area*q)
-		self.set_attitude(cl=cl)
-		print(self.cd0,self.cdi)
-		return q*self.area*(self.cd0 + self.cdi)
