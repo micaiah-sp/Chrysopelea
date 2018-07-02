@@ -1,4 +1,3 @@
-chrysopelea.avl
-chrysopelea.ain
-chrysopelea.aot
+chrysopelea*
+!chrysopelea.py
 *.swp
