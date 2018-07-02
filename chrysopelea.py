@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import io
 import matplotlib.pyplot as plt
+import time
 
 ########## AVL Class ##################
 
@@ -149,46 +150,52 @@ x""".format(cmd)
 			self.surfaces[s].scale(factor)
 
 class fast_avl(avl):
-	memory_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
+	memory_df = pd.DataFrame({'Alpha':[],'CLtot':[],'CDind':[],'e':[]})
+	mesh_size = 0.5
+	output_df = None
 
 	def set_attitude(self,cl=None,alpha=0):
 		if self.memory_df.empty:
 			avl.set_attitude(self,cl=cl,alpha=alpha)
 			self.to_df()
 		if cl != None:
-			paramname = 'cl'
-			pramvalue = cl
+			paramname = 'CLtot'
+			paramvalue = cl
 		elif alpha != None:
-			paramname = 'alpha'
+			paramname = 'Alpha'
 			paramvalue = alpha
 		while True:
-			fast_avl.memory_df.sort_values(paramname,inplace=True)
-			greater = fast_avl.memory_df.loc[fast_avl.memory_df[paramname] >= paramvalue]
-			less = fast_avl.memory_df.loc[fast_avl.memory_df[paramname] < paramvalue]
+			self.memory_df.sort_values(paramname,inplace=True)
+			greater = self.memory_df.loc[self.memory_df[paramname] >= paramvalue]
+			less = self.memory_df.loc[self.memory_df[paramname] < paramvalue]
 			if (len(greater) > 0) and (len(less) > 0):
 				greater, less = greater.iloc[0], less.iloc[-1]
 				output_ser = less + (greater-less)*(paramvalue-less[paramname])/(greater[paramname]-less[paramname])
 				self.output_df = pd.DataFrame(output_ser).transpose()
 				return self.output_df
-			elif len(greater) < 0:
-				alpha = less.iloc[-1]['alpha'] + 0.5
+			elif len(greater) == 0:
+				alpha = less.iloc[-1]['Alpha'] + self.mesh_size
 			else:
-				alpha = greater.iloc[0]['alpha'] - 0.5
+				alpha = greater.iloc[0]['Alpha'] - self.mesh_size
 			avl.set_attitude(self,alpha=alpha)
 			self.to_df()
 
+	def plot_mem(self):
+		plt.plot(self.memory_df['CDind'],self.memory_df['CLtot'])
+		plt.show()
+
 	def reset(self):
-		fast_avl.memory_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
+		self.memory_df = pd.DataFrame({'Alpha':[],'CLtot':[],'CDind':[],'e':[]})
 
 	def to_df(self):
-		new_df = pd.DataFrame({'alpha':[avl.get_output(self,'Alpha')],'cl':[avl.get_output(self,'CLtot')],\
-'cdi':[avl.get_output(self,'CDind')],'e':[avl.get_output(self,'e')]})
-		fast_avl.memory_df = pd.concat([fast_avl.memory_df, new_df])
-		print(fast_avl.memory_df)
+		new_df = pd.DataFrame({'Alpha':[avl.get_output(self,'Alpha')],'CLtot':[avl.get_output(self,'CLtot')],\
+'CDind':[avl.get_output(self,'CDind')],'e':[avl.get_output(self,'e')]})
+		self.memory_df = pd.concat([self.memory_df, new_df])
 
 	def get_output(self,var):
-		alphas = sorted(list(output_dict))
-		#lower = [a for a in alphas if 
+		if self.output_df is None:
+			self.set_attitude
+		return self.output_df[var][0]
 
 ############### Surface Class #######################
 
@@ -358,12 +365,13 @@ class motor(object):
 
 ############### flight dynamics class ######################
 
-class dynamic(avl):
+class dynamic(fast_avl):
 	weight = 1
 	rho = 1.225
 	extra_drag = 0		# D/q
 	speed_limits = (25,100)
 	phi_limits = -math.pi/2,math.pi/2
+	side_points = 10
 	motor = motor()
 
 	@property
@@ -389,19 +397,22 @@ class dynamic(avl):
 		return q*self.area*(self.cd0 + self.cdi)
 
 	def climb_envelope(self,plot=False):
+		t0 = time.time()
 		succeed = ([],[])
 		fail = ([],[])
-		for v in np.linspace(self.speed_limits[0],self.speed_limits[1],10):
-			for phi in np.linspace(self.phi_limits[0],self.phi_limits[1],10):
+		for v in np.linspace(self.speed_limits[0],self.speed_limits[1],self.side_points):
+			for phi in np.linspace(self.phi_limits[0],self.phi_limits[1],self.side_points):
 				drag = self.drag(v,phi)
 				thrust = self.motor.thrust(v)
-				print(thrust,drag,self.weight*math.sin(phi))
 				if thrust >= drag + self.weight*math.sin(phi):
 					succeed[0].append(v)
 					succeed[1].append(phi)
 				else:
 					fail[0].append(v)
 					fail[1].append(phi)
+		print('This call took')
+		print(time.time()-t0)
+		print('seconds')
 		if plot:
 			plt.scatter(succeed[0],succeed[1],c='g')
 			plt.scatter(fail[0],fail[1],c='r')
@@ -415,6 +426,4 @@ class dynamic(avl):
 	def max_climb_rate(self):
 		succeed,fail = self.climb_envelope(plot=True)
 		climb_rates = [succeed[0][n]*math.sin(succeed[1][n]) for n in range(len(succeed[0]))]
-		print(succeed)
-		print(climb_rates)
 		return max(climb_rates)
