@@ -167,8 +167,8 @@ class fast_avl(avl):
 	def to_df(self):
 		new_df = pd.DataFrame({'alpha':[avl.get_output(self,'Alpha')],'cl':[avl.get_output(self,'CLtot')],\
 'cdi':[avl.get_output(self,'CDind')],'e':[avl.get_output(self,'e')]})
-		print(new_df)
-		#fast_avl.output_df = pd.concat([fast_avl.output_df
+		fast_avl.output_df = pd.concat([fast_avl.output_df, new_df]).sort_values('alpha')
+		print(fast_avl.output_df)
 
 	def get_output(self,var):
 		alphas = sorted(list(output_dict))

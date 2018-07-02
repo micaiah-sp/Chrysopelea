@@ -11,25 +11,6 @@ Advanced
 
 #==============================================
 SURFACE
-HTail
-#Nchord		Cspace		Nspan		Sspace
-10 		1 		20 		1
-YDUPLICATE
-0
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	0.0	 	0.0	 	10.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	14.0	 	0.0	 	10.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#==============================================
-SURFACE
 Wing
 #Nchord		Cspace		Nspan		Sspace
 10 		1 		20 		1
@@ -88,5 +69,24 @@ sd7062.dat
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
 4.0	 	13.5	 	12.0	 	6.0	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#==============================================
+SURFACE
+HTail
+#Nchord		Cspace		Nspan		Sspace
+10 		1 		20 		1
+YDUPLICATE
+0
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	0.0	 	0.0	 	10.0	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	14.0	 	0.0	 	10.0	 	0	 	0	 	0
 AFILE
 sd7062.dat

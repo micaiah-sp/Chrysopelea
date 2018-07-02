@@ -32,12 +32,6 @@
 
  Configuration: Advanced                                                    
 
-   Building surface: HTail                                   
-     Reading airfoil from file: sd7062.dat
-     Reading airfoil from file: sd7062.dat
-  
-   Building duplicate image-surface: HTail (YDUP)                            
-
    Building surface: Wing                                    
      Reading airfoil from file: nlf0215f-il.dat
      Reading airfoil from file: nlf0215f-il.dat
@@ -53,6 +47,12 @@
      Reading airfoil from file: sd7062.dat
   
    Building duplicate image-surface: VerTail (YDUP)                          
+
+   Building surface: HTail                                   
+     Reading airfoil from file: sd7062.dat
+     Reading airfoil from file: sd7062.dat
+  
+   Building duplicate image-surface: HTail (YDUP)                            
 
  Mach =    0.0000  (default)
 
@@ -181,8 +181,8 @@
 
   CLtot =   0.36400
   CDtot =   0.00770
-  CDvis =   0.00000     CDind = 0.0077010
-  CLff  =   0.36327     CDff  = 0.0074104    | Trefftz
+  CDvis =   0.00000     CDind = 0.0077011
+  CLff  =   0.36327     CDff  = 0.0074105    | Trefftz
   CYff  =  -0.00000         e =    0.7661    | Plane  
 
 
