@@ -23,6 +23,7 @@ bb9.phi_limits = (0,0.3)
 print(bb9.max_climb_rate)
 """
 foo = fast_avl('BB7.avl')
-foo.pop('Vertail')
-foo.pop('Htail')
-foo.reset()
+foo.pop('VerTail')
+foo.pop('HTail')
+
+

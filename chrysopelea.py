@@ -16,11 +16,10 @@ class avl(object):
 	class for performing AVL simulations
 	"""
 	text = ""
-	surfaces = {}
 	output = None
 
 	def __init__(self,file=None):
-		self.surfaces = avl.surfaces.copy()
+		self.surfaces = {}
 		if file != None:
 			file_obj = open(file)
 			text = file_obj.read()
@@ -150,25 +149,42 @@ x""".format(cmd)
 			self.surfaces[s].scale(factor)
 
 class fast_avl(avl):
-	output_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
+	memory_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
 
-	def __init__(self,file=None):
-		print('begin initialization')
-		avl.__init__(self,file)
-		print('avl initialized')
-		avl.set_attitude(self,alpha=0)
-		self.to_df()
+	def set_attitude(self,cl=None,alpha=0):
+		if self.memory_df.empty:
+			avl.set_attitude(self,cl=cl,alpha=alpha)
+			self.to_df()
+		if cl != None:
+			paramname = 'cl'
+			pramvalue = cl
+		elif alpha != None:
+			paramname = 'alpha'
+			paramvalue = alpha
+		while True:
+			fast_avl.memory_df.sort_values(paramname,inplace=True)
+			greater = fast_avl.memory_df.loc[fast_avl.memory_df[paramname] >= paramvalue]
+			less = fast_avl.memory_df.loc[fast_avl.memory_df[paramname] < paramvalue]
+			if (len(greater) > 0) and (len(less) > 0):
+				greater, less = greater.iloc[0], less.iloc[-1]
+				output_ser = less + (greater-less)*(paramvalue-less[paramname])/(greater[paramname]-less[paramname])
+				self.output_df = pd.DataFrame(output_ser).transpose()
+				return self.output_df
+			elif len(greater) < 0:
+				alpha = less.iloc[-1]['alpha'] + 0.5
+			else:
+				alpha = greater.iloc[0]['alpha'] - 0.5
+			avl.set_attitude(self,alpha=alpha)
+			self.to_df()
 
 	def reset(self):
-		avl.output_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
-		avl.set_attitude(self,alpha=0)
-		self.to_df()
+		fast_avl.memory_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
 
 	def to_df(self):
 		new_df = pd.DataFrame({'alpha':[avl.get_output(self,'Alpha')],'cl':[avl.get_output(self,'CLtot')],\
 'cdi':[avl.get_output(self,'CDind')],'e':[avl.get_output(self,'e')]})
-		fast_avl.output_df = pd.concat([fast_avl.output_df, new_df]).sort_values('alpha')
-		print(fast_avl.output_df)
+		fast_avl.memory_df = pd.concat([fast_avl.memory_df, new_df])
+		print(fast_avl.memory_df)
 
 	def get_output(self,var):
 		alphas = sorted(list(output_dict))
