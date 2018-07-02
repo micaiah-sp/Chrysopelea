@@ -32,6 +32,12 @@
 
  Configuration: Advanced                                                    
 
+   Building surface: HTail                                   
+     Reading airfoil from file: sd7062.dat
+     Reading airfoil from file: sd7062.dat
+  
+   Building duplicate image-surface: HTail (YDUP)                            
+
    Building surface: Wing                                    
      Reading airfoil from file: nlf0215f-il.dat
      Reading airfoil from file: nlf0215f-il.dat
@@ -41,12 +47,19 @@
   
    Building duplicate image-surface: Wing (YDUP)                             
 
+   Building surface: VerTail                                 
+     Reading airfoil from file: sd7062.dat
+     Reading airfoil from file: sd7062.dat
+     Reading airfoil from file: sd7062.dat
+  
+   Building duplicate image-surface: VerTail (YDUP)                          
+
  Mach =    0.0000  (default)
 
     0 Bodies
-    2 Solid surfaces
-   40 Strips
-  400 Vortices
+    6 Solid surfaces
+  120 Strips
+ 1200 Vortices
 
     0 Control variables
     0 Design parameters
@@ -107,7 +120,7 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  CL          =  0.2814         
+  A lpha        ->  alpha       =   0.000         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
@@ -142,36 +155,35 @@
   Building bound-vortex velocity matrix...
 
  iter d(alpha)   d(beta)    d(pb/2V)   d(qc/2V)   d(rb/2V)  
-   1 -0.980E+00 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
-   2  0.105E-02 -0.000E+00  0.000E+00 -0.000E+00  0.000E+00
+   1 -0.000E+00 -0.000E+00 -0.000E+00 -0.000E+00 -0.000E+00
  ---------------------------------------------------------------
  Vortex Lattice Output -- Total Forces
 
  Configuration: Advanced                                                    
-     # Surfaces =   2
-     # Strips   =  40
-     # Vortices = 400
+     # Surfaces =   6
+     # Strips   = 120
+     # Vortices =1200
 
-  Sref =  19.462       Cref =  1.6218       Bref =  12.000    
+  Sref =  2802.5       Cref =  19.462       Bref =  144.00    
   Xref =  0.0000       Yref =  0.0000       Zref =  0.0000    
 
  Standard axis orientation,  X fwd, Z down         
 
  Run case:  -unnamed-                              
 
-  Alpha =  -0.97856     pb/2V =  -0.00000     p'b/2V =  -0.00000
+  Alpha =   0.00000     pb/2V =  -0.00000     p'b/2V =  -0.00000
   Beta  =   0.00000     qc/2V =   0.00000
   Mach  =     0.000     rb/2V =  -0.00000     r'b/2V =  -0.00000
 
-  CXtot =  -0.00922     Cltot =  -0.00000     Cl'tot =  -0.00000
-  CYtot =  -0.00000     Cmtot =  -0.16313
-  CZtot =  -0.28127     Cntot =   0.00000     Cn'tot =   0.00000
+  CXtot =  -0.00770     Cltot =  -0.00000     Cl'tot =  -0.00000
+  CYtot =  -0.00000     Cmtot =  -0.17830
+  CZtot =  -0.36400     Cntot =   0.00000     Cn'tot =   0.00000
 
-  CLtot =   0.28139
-  CDtot =   0.00442
-  CDvis =   0.00000     CDind = 0.0044168
-  CLff  =   0.28079     CDff  = 0.0043788    | Trefftz
-  CYff  =  -0.00000         e =    0.7746    | Plane  
+  CLtot =   0.36400
+  CDtot =   0.00770
+  CDvis =   0.00000     CDind = 0.0077010
+  CLff  =   0.36327     CDff  = 0.0074104    | Trefftz
+  CYff  =  -0.00000         e =    0.7661    | Plane  
 
 
  ---------------------------------------------------------------
@@ -181,7 +193,7 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  CL          =  0.2814         
+  A lpha        ->  alpha       =   0.000         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
@@ -217,7 +229,7 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  CL          =  0.2814         
+  A lpha        ->  alpha       =   0.000         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
@@ -246,3 +258,4 @@
                                VM  strip shear,moment    
 
  .OPER (case 1/1)   c>  
+ AVL   c>  

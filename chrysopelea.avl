@@ -5,10 +5,29 @@ Advanced
 #IYsym		IZsym		Zsym		Vehicle Symmetry
 0 	0 	0
 #Sref		Cref		Bref		Reference Area and Lengths
-19.461805555555554		1.6218171296296295		12.0
+2802.5		19.461805555555557		144.0
 #Xref	 	Yref	 	Zref	 	Center of Gravity Location
 0 		0	 	0
 
+#==============================================
+SURFACE
+HTail
+#Nchord		Cspace		Nspan		Sspace
+10 		1 		20 		1
+YDUPLICATE
+0
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	0.0	 	0.0	 	10.0	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	14.0	 	0.0	 	10.0	 	0	 	0	 	0
+AFILE
+sd7062.dat
 #==============================================
 SURFACE
 Wing
@@ -19,30 +38,55 @@ YDUPLICATE
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
--0.7916666666666666	 	0.0	 	0.0	 	2.9166666666666665	 	0	 	0	 	0
+-9.5	 	0.0	 	0.0	 	35.0	 	0	 	0	 	0
 AFILE
 nlf0215f-il.dat
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
--0.7916666666666666	 	0.375	 	0.0	 	2.9166666666666665	 	0	 	0	 	0
+-9.5	 	4.5	 	0.0	 	35.0	 	0	 	0	 	0
 AFILE
 nlf0215f-il.dat
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	1.125	 	0.16666666666666666	 	1.525	 	0	 	0	 	0
+0.0	 	13.5	 	2.0	 	18.3	 	0	 	0	 	0
 AFILE
 sd7062.dat
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	3.4166666666666665	 	0.16666666666666666	 	1.525	 	0	 	0	 	0
+0.0	 	41.0	 	2.0	 	18.3	 	0	 	0	 	0
 AFILE
 sd7062.dat
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	6.0	 	0.16666666666666666	 	1.1666666666666665	 	0	 	0	 	0
+0.0	 	72.0	 	2.0	 	14.0	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#==============================================
+SURFACE
+VerTail
+#Nchord		Cspace		Nspan		Sspace
+10 		1 		20 		1
+YDUPLICATE
+0
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.0	 	13.5	 	0.0	 	5.0	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+0.833	 	13.5	 	2.5	 	9.16	 	0	 	0	 	0
+AFILE
+sd7062.dat
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+4.0	 	13.5	 	12.0	 	6.0	 	0	 	0	 	0
 AFILE
 sd7062.dat

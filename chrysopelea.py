@@ -3,7 +3,9 @@ import subprocess
 from collections import OrderedDict
 import re
 import pandas as pd
+import numpy as np
 import io
+import matplotlib.pyplot as plt
 
 ########## AVL Class ##################
 
@@ -89,6 +91,7 @@ Advanced
 load chrysopelea.avl
 oper{}
 quit
+
 """.format(operations))
 		cmd.close()
 		subprocess.run(avl_path + "<chrysopelea.ain>chrysopelea.aot",shell=True)
@@ -138,12 +141,38 @@ x""".format(cmd)
 	def alpha(self):
 		return self.get_output('Alpha')
 
+	@property
 	def e(self):
 		return self.get_output('e')
 
 	def scale(self, factor):
 		for s in self.surfaces.keys():
 			self.surfaces[s].scale(factor)
+
+class fast_avl(avl):
+	output_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
+
+	def __init__(self,file=None):
+		print('begin initialization')
+		avl.__init__(self,file)
+		print('avl initialized')
+		avl.set_attitude(self,alpha=0)
+		self.to_df()
+
+	def reset(self):
+		avl.output_df = pd.DataFrame({'alpha':[],'cl':[],'cdi':[],'e':[]})
+		avl.set_attitude(self,alpha=0)
+		self.to_df()
+
+	def to_df(self):
+		new_df = pd.DataFrame({'alpha':[avl.get_output(self,'Alpha')],'cl':[avl.get_output(self,'CLtot')],\
+'cdi':[avl.get_output(self,'CDind')],'e':[avl.get_output(self,'e')]})
+		print(new_df)
+		#fast_avl.output_df = pd.concat([fast_avl.output_df
+
+	def get_output(self,var):
+		alphas = sorted(list(output_dict))
+		#lower = [a for a in alphas if 
 
 ############### Surface Class #######################
 
@@ -300,12 +329,26 @@ quit
 		self.output = output
 		return output
 
+############ motor class #####################
+
+class motor(object):
+	static = 0
+	max = 1
+	static_thrust = 1
+	thrust_at_max = 1
+
+	def thrust(self,v):
+		return self.static_thrust + (self.thrust_at_max-self.static_thrust)*(v-self.static)/self.max
+
 ############### flight dynamics class ######################
 
 class dynamic(avl):
 	weight = 1
 	rho = 1.225
 	extra_drag = 0		# D/q
+	speed_limits = (25,100)
+	phi_limits = -math.pi/2,math.pi/2
+	motor = motor()
 
 	@property
 	def cd0(self):
@@ -318,3 +361,44 @@ class dynamic(avl):
 
 	def q(self,v):
 		return 0.5*self.rho*v**2
+
+	def drag(self,v,phi):
+		"""
+		v is the speed,
+		phi is the angle of elevation of the climb trajectory
+		"""
+		q = self.q(v)
+		cl = self.weight*math.cos(phi)/(q*self.area)
+		self.set_attitude(cl=cl)
+		return q*self.area*(self.cd0 + self.cdi)
+
+	def climb_envelope(self,plot=False):
+		succeed = ([],[])
+		fail = ([],[])
+		for v in np.linspace(self.speed_limits[0],self.speed_limits[1],10):
+			for phi in np.linspace(self.phi_limits[0],self.phi_limits[1],10):
+				drag = self.drag(v,phi)
+				thrust = self.motor.thrust(v)
+				print(thrust,drag,self.weight*math.sin(phi))
+				if thrust >= drag + self.weight*math.sin(phi):
+					succeed[0].append(v)
+					succeed[1].append(phi)
+				else:
+					fail[0].append(v)
+					fail[1].append(phi)
+		if plot:
+			plt.scatter(succeed[0],succeed[1],c='g')
+			plt.scatter(fail[0],fail[1],c='r')
+			plt.xlabel('v')
+			plt.ylabel('phi')
+			plt.show()
+
+		return succeed,fail
+
+	@property
+	def max_climb_rate(self):
+		succeed,fail = self.climb_envelope(plot=True)
+		climb_rates = [succeed[0][n]*math.sin(succeed[1][n]) for n in range(len(succeed[0]))]
+		print(succeed)
+		print(climb_rates)
+		return max(climb_rates)
