@@ -298,7 +298,6 @@ YDUPLICATE
 ############### XFOIL class #############################
 
 class xfoil(object):
-	re = 450000
 	output = None
 	computed = {}
 	parent = None
@@ -319,8 +318,13 @@ class xfoil(object):
 		else:
 			oper = "alfa 0"
 			self.execute(oper)
+			print(self.output)
 			xfoil.computed[self.file] = self.output.iloc[0]['CD']
 			return self.cd0
+
+	@property
+	def re(self):
+		return self.parent.parent.speed*self.parent.parent.rho*self.chord/self.parent.parent.mu
 
 	def execute(self,oper):
 		input = open("chrysopelea.xin",'w')
@@ -372,14 +376,20 @@ class motor(object):
 ############### flight dynamics class ######################
 
 class dynamic(fast_avl):
+	# aircraft characteristics
 	weight = 1
-	rho = 1.225
 	extra_drag = 0		# D/q
+	motor = motor()
+
+	# flight conditions
+	speed = 1
+	rho = 1.225
+	mu = 18.27 * 10**-6
+
+	# computational parameters
 	speed_limits = (25,100)
 	phi_limits = -math.pi/2,math.pi/2
 	side_points = 10
-	motor = motor()
-
 	@property
 	def cd0(self):
 		c = 0
@@ -433,3 +443,7 @@ class dynamic(fast_avl):
 		succeed,fail = self.climb_envelope(plot=True)
 		climb_rates = [succeed[0][n]*math.sin(succeed[1][n]) for n in range(len(succeed[0]))]
 		return max(climb_rates)
+
+class imperial_dynamic(dynamic):
+	rho = 0.0023769
+	mu = 0.3766*10**-6
