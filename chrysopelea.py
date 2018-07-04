@@ -78,9 +78,9 @@ Advanced
 
 	def add_surface(self,surf):
 		if type(surf) == str:
-			self.surfaces[surf] = Surface(surf)
-		else:
-			self.surfaces[surf.name] = surf
+			surf = Surface(surf)
+		surf.parent = self
+		self.surfaces[surf.name] = surf
 
 	def execute(self,operations):
 		input = open('chrysopelea.avl','w')
@@ -200,19 +200,22 @@ class fast_avl(avl):
 ############### Surface Class #######################
 
 class Surface(object):
-	sections = OrderedDict()
+	sections = []
 	yduplicate = 0
 	nchord = 10
 	cspace = 1
 	nspan = 20
 	sspace = 1
+	parent = None
 
 	def __init__(self,name):
 		self.sections = Surface.sections.copy()
 		self.name = name
 
 	def add_section(self,xyz, chord, afile = 'sd7062.dat'):
-		self.sections[xyz] = (chord,afile)
+		sec = xfoil(file=afile,position=xyz,chord=chord)
+		sec.parent = self
+		self.sections.append(sec)
 
 	def __repr__(self):
 		return 'AVL surface with name "{}"'.format(self.name)
@@ -228,31 +231,23 @@ SURFACE
 YDUPLICATE
 {}""".format(self.nchord,self.cspace,self.nspan,self.sspace,self.yduplicate)
 
-		for s in self.sections.keys():
-			text += """
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-{}	 	{}	 	{}	 	{}	 	0	 	0	 	0
-AFILE
-{}""".format(s[0],s[1],s[2],self.sections[s][0],self.sections[s][1])
-
+		for s in self.sections:
+			text += str(s)
 		return text
 
 	@property
 	def area(self):
 		a = 0
-		keys = list(self.sections)
-		for n in range(1,len(keys)):
-			a += 0.5*abs(keys[n][1] - keys[n-1][1])*(self.sections[keys[n]][0] + self.sections[keys[n-1]][0])
+		for n in range(1,len(self.sections)):
+			a += 0.5*abs(self.sections[n].position[1] - self.sections[n-1].position[1])\
+*(self.sections[n].chord + self.sections[n-1].chord)
 		if self.yduplicate != "":
 			a *= 2
 		return a
 	@property
 	def span(self):
 		a = 0
-		keys = list(self.sections)
-		b = max([abs(k[1]) for k in keys])
+		b = max([abs(s.position[1]) for s in self.sections])
 		if self.yduplicate != "":
 			b *= 2
 		return b
@@ -266,11 +261,11 @@ AFILE
 	@property
 	def cd0(self):
 		c = 0
-		keys = list(self.sections)
-		for n in range(1,len(keys)):
-			c0 = xfoil(self.sections[keys[n]][1]).cd0
-			c1 = xfoil(self.sections[keys[n-1]][1]).cd0
-			c += 0.5*abs(keys[n][1] - keys[n-1][1])*(self.sections[keys[n]][0]*c0 + self.sections[keys[n-1]][0]*c1)
+		for n in range(1,len(self.sections)):
+			c0 = self.sections[n].cd0
+			c1 = self.sections[n-1].cd0
+			chordwise = 0.5*(self.sections[n].chord*c0 + self.sections[n-1].chord*c1)
+			c += abs(self.sections[n].position[1] - self.sections[n-1].position[1]) * chordwise
 		if self.yduplicate != "":
 			c *= 2
 		return c/self.area
@@ -295,10 +290,9 @@ AFILE
 		return s
 
 	def scale(self, factor):
-		d = self.sections
-		self.sections = OrderedDict()
-		for k in list(d):
-			self.sections[(k[0]*factor,k[1]*factor,k[2]*factor)] = (d[k][0]*factor,d[k][1])
+		for s in self.sections:
+			s.position = [x*factor for x in s.position]
+			s.chord *= factor
 
 
 ############### XFOIL class #############################
@@ -307,9 +301,12 @@ class xfoil(object):
 	re = 450000
 	output = None
 	computed = {}
+	parent = None
 
-	def __init__(self, file = "sd7062"):
+	def __init__(self, file = "sd7062",position=[0,0,0],chord=1):
 		self.file = file
+		self.position=position
+		self.chord = chord
 
 	@property
 	def load_cmd(self):
@@ -320,7 +317,7 @@ class xfoil(object):
 		if self.file in xfoil.computed:
 			return xfoil.computed[self.file]
 		else:
-			oper = "alfa 8"
+			oper = "alfa 0"
 			self.execute(oper)
 			xfoil.computed[self.file] = self.output.iloc[0]['CD']
 			return self.cd0
@@ -351,6 +348,15 @@ quit
 		subprocess.run("rm chrysopelea.xin chrysopelea.xot chrysopelea_xfoil.dat",shell=True)
 		self.output = output
 		return output
+
+	def __str__(self):
+		return """
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+{}	 	{}	 	{}	 	{}	 	0	 	0	 	0
+AFILE
+{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.file)
 
 ############ motor class #####################
 
