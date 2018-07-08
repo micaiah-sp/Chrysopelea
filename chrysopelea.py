@@ -149,6 +149,13 @@ x""".format(cmd)
 		for s in self.surfaces.keys():
 			self.surfaces[s].scale(factor)
 
+	def set_nchord(self,nc):
+		for k in self.surfaces.keys():
+			self.surfaces[k].nchord = nc
+	def set_nspan(self,ns):
+		for k in self.surfaces.keys():
+			self.surfaces[k].nspan = ns
+
 class fast_avl(avl):
 	memory_df = pd.DataFrame({'Alpha':[],'CLtot':[],'CDind':[],'e':[]})
 	mesh_size = 0.5
@@ -301,11 +308,13 @@ class xfoil(object):
 	output = None
 	computed = {}
 	parent = None
+	re = 450000
 
-	def __init__(self, file = "sd7062",position=[0,0,0],chord=1):
+	def __init__(self, file = "sd7062",position=[0,0,0],chord=1,sspace=1):
 		self.file = file
 		self.position=position
 		self.chord = chord
+		self.sspace = sspace
 
 	@property
 	def load_cmd(self):
@@ -322,9 +331,11 @@ class xfoil(object):
 			xfoil.computed[self.file] = self.output.iloc[0]['CD']
 			return self.cd0
 
+	"""
 	@property
 	def re(self):
-		return self.parent.parent.speed*self.parent.parent.rho*self.chord/self.parent.parent.mu
+		return round(self.parent.parent.speed*self.parent.parent.rho*self.chord/self.parent.parent.mu,-3)
+	"""
 
 	def execute(self,oper):
 		input = open("chrysopelea.xin",'w')
@@ -358,9 +369,9 @@ quit
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-{}	 	{}	 	{}	 	{}	 	0	 	0	 	0
+{}	 	{}	 	{}	 	{}	 	0	 	0	 	{}
 AFILE
-{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.file)
+{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.sspace,self.file)
 
 ############ motor class #####################
 

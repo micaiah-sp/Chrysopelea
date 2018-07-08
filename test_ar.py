@@ -1,6 +1,31 @@
 from chrysopelea import *
 
-bb9 = dynamic('BB7.avl')
+bb8 = avl('BB7.avl')
+bb8.pop('VerTail')
+bb8.pop('HTail')
+bb8.draw()
+#bb8.set_nchord(50)
+#bb8.set_nspan(100)
+
+#for a in np.linspace(-5,10,100):
+for a in [3,4,5]:
+	bb8.set_attitude(alpha=a)
+	print(bb8.cdi)
+	print(bb8.cl)
+	print(bb8.ar)
+	print(bb8.e)
+	try:
+		num = bb8.cdi
+		form = (bb8.cl**2)/(math.pi*bb8.ar*bb8.e)
+		print(num,form)
+		print(abs(num-form)/num)
+	except:
+		print('failed')
+	print()
+	print()
+
+"""
+bb9 = imperial_dynamic('BB7.avl')
 bb9.pop('VerTail')
 bb9.pop('HTail')
 
@@ -23,7 +48,7 @@ bb9.mesh_size = 1
 bb9.side_points = 100
 print(bb9.max_climb_rate)
 bb9.plot_mem()
-"""
+
 foo = fast_avl('BB7.avl')
 foo.pop('VerTail')
 foo.pop('HTail')

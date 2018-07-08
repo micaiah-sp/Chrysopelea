@@ -10,6 +10,6 @@ s.add_section([0,0.5,0],1)
 """
 foo.add_surface(s)
 foo.speed = 50*5280/3600
-
-print(foo.surfaces["Wing"].sections[0].re)
+for sec in s.sections:
+	print(sec.re)
 print(foo.cd0)
