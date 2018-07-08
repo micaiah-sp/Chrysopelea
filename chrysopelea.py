@@ -209,10 +209,8 @@ class fast_avl(avl):
 class Surface(object):
 	sections = []
 	yduplicate = 0
-	nchord = 10
+	nchord = 5
 	cspace = 1
-	nspan = 20
-	sspace = 1
 	parent = None
 
 	def __init__(self,name):
@@ -228,15 +226,18 @@ class Surface(object):
 		return 'AVL surface with name "{}"'.format(self.name)
 	def __str__(self):
 		# important note: spaces after numbers in Nchord... !!
+		if self.yduplicate == None:
+			ydup = ""
+		else:
+			ydup = "YDUPLICATE\n" + str(self.yduplicate)
 		text = """
 #==============================================
 SURFACE
 {}""".format(self.name)
 		text += """
-#Nchord		Cspace		Nspan		Sspace
-{} 		{} 		{} 		{}
-YDUPLICATE
-{}""".format(self.nchord,self.cspace,self.nspan,self.sspace,self.yduplicate)
+#Nchord		Cspace 
+{} 		{} 
+{}""".format(self.nchord,self.cspace,ydup)
 
 		for s in self.sections:
 			text += str(s)
@@ -248,15 +249,17 @@ YDUPLICATE
 		for n in range(1,len(self.sections)):
 			a += 0.5*abs(self.sections[n].position[1] - self.sections[n-1].position[1])\
 *(self.sections[n].chord + self.sections[n-1].chord)
-		if self.yduplicate != "":
+		if self.yduplicate != None:
 			a *= 2
 		return a
 	@property
 	def span(self):
 		a = 0
-		b = max([abs(s.position[1]) for s in self.sections])
-		if self.yduplicate != "":
-			b *= 2
+		pos = [s.position[1] for s in self.sections]
+		if self.yduplicate == None:
+			b = abs(max(pos) - min(pos))
+		else:
+			b = 2*max([abs(p-self.yduplicate) for p in pos])
 		return b
 
 	@property
@@ -310,11 +313,12 @@ class xfoil(object):
 	parent = None
 	re = 450000
 
-	def __init__(self, file = "sd7062",position=[0,0,0],chord=1,sspace=1):
+	def __init__(self, file = "sd7062",position=[0,0,0],chord=1,sspace=1,nspan=10):
 		self.file = file
 		self.position=position
 		self.chord = chord
 		self.sspace = sspace
+		self.nspan = nspan
 
 	@property
 	def load_cmd(self):
@@ -369,9 +373,9 @@ quit
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-{}	 	{}	 	{}	 	{}	 	0	 	0	 	{}
+{} 	 	{} 	 	{} 	 	{} 	 	0 	 	{} 	 	{} 
 AFILE
-{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.sspace,self.file)
+{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.file)
 
 ############ motor class #####################
 

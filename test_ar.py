@@ -7,22 +7,35 @@ bb8.draw()
 #bb8.set_nchord(50)
 #bb8.set_nspan(100)
 
-#for a in np.linspace(-5,10,100):
-for a in [3,4,5]:
+for n in range(len(bb8.surfaces['Wing'].sections)):
+	if n < 2:
+		nspan = 5
+	else:
+		nspan = 20
+	bb8.surfaces['Wing'].sections[n].nspan = nspan
+
+alphas = np.linspace(-5,10,100)
+err = []
+alph = []
+for a in alphas:
+#for a in [3,4,5]:
 	bb8.set_attitude(alpha=a)
+	"""
 	print(bb8.cdi)
 	print(bb8.cl)
 	print(bb8.ar)
 	print(bb8.e)
+"""
 	try:
 		num = bb8.cdi
 		form = (bb8.cl**2)/(math.pi*bb8.ar*bb8.e)
-		print(num,form)
-		print(abs(num-form)/num)
+		err.append( abs(num-form)/num )
+		alph.append(a)
 	except:
 		print('failed')
-	print()
-	print()
+
+plt.plot(alph,err)
+plt.show()
 
 """
 bb9 = imperial_dynamic('BB7.avl')
