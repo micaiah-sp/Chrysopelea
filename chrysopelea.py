@@ -462,3 +462,50 @@ class dynamic(fast_avl):
 class imperial_dynamic(dynamic):
 	rho = 0.0023769
 	mu = 0.3766*10**-6
+
+############ lifting line class ##########
+
+class LiftingLine(object):
+
+	def __init__(self,chord):
+		self.chord = np.array(chord)
+		self.kappa = np.zeros(len(self.chord))
+		self.upwash= np.zeros(len(self.chord))
+
+	@property
+	def dy(self):
+		return 1/len(self.chord)
+	@property
+	def ar(self):
+		return 1/np.mean(self.chord)
+	@property
+	def cl(self):
+		return -2*np.mean(self.kappa)/np.mean(self.chord)
+	@property
+	def cdi(self):
+		return 2*np.mean(self.kappa*self.upwash)/np.mean(self.chord)
+	@property
+	def e(self):
+		return (self.cl**2)/(math.pi*self.ar*self.cdi)
+
+	def vcoef(self,y,n):
+		return (1/(self.dy*(n+1)-y) - 1/(self.dy*n-y))/(4*math.pi)
+
+	def solve(self,alpha):
+		print('start')
+		eqns = []
+		b = []
+		for m in range(len(self.chord)):
+			eq = []
+			for n in range(len(self.chord)):
+				eq.append(math.pi*self.chord[m]*-self.vcoef(self.dy*(m+0.5),n))
+			eq[m] -= 1
+			eqns.append(eq)
+			b.append([math.pi*self.chord[m]*alpha])
+		eqns,b = np.array(eqns),np.array(b)
+		print('solve')
+		self.kappa = np.linalg.solve(eqns,b)
+		for m in range(len(self.chord)):
+			for n in range(len(self.chord)):
+				self.upwash[m] += self.kappa[n]*self.vcoef(self.dy*(m + 0.5),n)
+
