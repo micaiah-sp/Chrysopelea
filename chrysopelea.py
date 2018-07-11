@@ -469,22 +469,33 @@ class LiftingLine(object):
 
 	def __init__(self,n=100, chord='elipse',space = 'sin'):
 		theta = np.linspace(0,math.pi,n+1)
-		x = np.cos(theta)/2
+		x = -np.cos(theta)/2
 		self.kappa = np.zeros(n)
 		self.upwash= np.zeros(n)
 
 		if space == 'uniform':
 			self.space = np.zeros(n) + 1/n
+			self.x = np.linspace(0,1,n+2)[1:-1]
+			self.elip = 2*np.sqrt(0.25-(self.x-0.5)**2)
 		elif space == 'sin':
-			self.space = x[:-1]-x[1:]
+			self.space = x[1:]-x[:-1]
+			self.elip = np.sin(np.linspace(0,math.pi,n))
+			self.x = 0.5*(x[1:] + x[:-1]) + 0.5
 		else:
 			self.space = space
 
 		if chord == 'uniform':
 			self.chord = np.zeros(n) + 0.1
 		elif chord == 'elipse':
-			self.chord = 0.1*np.sin(np.linspace(0,math.pi,n))
-		self.x = 0.5*(x[1:] + x[:-1]) + 0.5
+			self.chord = 0.1*np.sqrt(1-(2*self.x-1)**2)
+		"""
+		plt.plot(self.x)
+		plt.show()
+		plt.plot(self.x,self.chord)
+		plt.show()
+		plt.plot(self.x,self.space)
+		plt.show()
+		"""
 
 	@property
 	def ar(self):
@@ -496,37 +507,40 @@ class LiftingLine(object):
 	def cdi(self):
 		return 2*sum(self.kappa*self.upwash*self.space)/sum(self.chord*self.space)
 	@property
+	def L(self):
+		return -sum(self.kappa*self.space)
+	@property
+	def D(self):
+		return sum(self.kappa*self.upwash*self.space)
+	@property
 	def e(self):
-		return (self.cl**2)/(math.pi*self.ar*self.cdi)
+		return ((self.cl**2)/(math.pi*self.ar*self.cdi),(2*self.L**2)/(math.pi*self.D))
 
 	def vcoef(self,y,n):
-		return (1/(sum(self.space[:n+1])-y) - 1/(sum(self.space[:n])-y))/(4*math.pi)
+		return (1/(self.x[n]+self.space[n]/2-y) - 1/(self.x[n]-self.space[n]/2-y))/(4*math.pi)
+	@np.vectorize
+	def eqcoef(self,m,n):
+		return self.vcoef(self.x[m],n)
+	@np.vectorize
+	def wash(self,m,n):
+		return self.kappa[n]*self.vcoef(self.x[m],n)
 
 	def solve(self,alpha):
-		print('start')
-		eqns = []
-		b = []
-		for m in range(len(self.chord)):
-			eq = []
-			for n in range(len(self.chord)):
-				eq.append(math.pi*self.chord[m]*-self.vcoef(self.x[m],n))
-			eq[m] -= 1
-			eqns.append(eq)
-			b.append([math.pi*self.chord[m]*alpha])
-		eqns,b = np.array(eqns),np.array(b)
-		print('solve')
+		b = -alpha+np.zeros(len(self.x))
+		m = np.array([range(len(self.x))])
+		n = m.transpose()
+		eqns = self.eqcoef(self,m,n)
+		eqns += np.identity(len(self.x))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
-		print('finish')
-		for m in range(len(self.chord)):
-			for n in range(len(self.chord)):
-				self.upwash[m] += self.kappa[n]*self.vcoef(self.x[m],n)
+		self.upwash = self.wash(self,m,n).sum(0)
 
 	def plot(self):
 		n = len(self.space)
 		plt.plot(self.x,self.kappa)
 		print(max(abs(self.kappa)))
-		elip = [-math.sqrt((n/2)**2 - (m-n/2)**2)/(n/2)*max(abs(self.kappa)) for m in range(n)]
-		plt.plot(np.linspace(0,1,n),elip)
+		#elip = [-math.sqrt((n/2)**2 - (m-n/2)**2)/(n/2)*max(abs(self.kappa)) for m in range(n)]
+		elip = -self.elip*max(abs(self.kappa))
+		plt.plot(self.x,elip)
 		plt.plot(self.x,self.upwash)
 		plt.show()
 
