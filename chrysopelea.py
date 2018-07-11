@@ -467,29 +467,40 @@ class imperial_dynamic(dynamic):
 
 class LiftingLine(object):
 
-	def __init__(self,chord):
-		self.chord = np.array(chord)
-		self.kappa = np.zeros(len(self.chord))
-		self.upwash= np.zeros(len(self.chord))
+	def __init__(self,n=100, chord='elipse',space = 'sin'):
+		theta = np.linspace(0,math.pi,n+1)
+		x = np.cos(theta)/2
+		self.kappa = np.zeros(n)
+		self.upwash= np.zeros(n)
+
+		if space == 'uniform':
+			self.space = np.zeros(n) + 1/n
+		elif space == 'sin':
+			self.space = x[:-1]-x[1:]
+		else:
+			self.space = space
+
+		if chord == 'uniform':
+			self.chord = np.zeros(n) + 0.1
+		elif chord == 'elipse':
+			self.chord = 0.1*np.sin(np.linspace(0,math.pi,n))
+		self.plotx = 0.5*np.cos(np.linspace(0,math.pi,n)) + 0.5
 
 	@property
-	def dy(self):
-		return 1/len(self.chord)
-	@property
 	def ar(self):
-		return 1/np.mean(self.chord)
+		return 1/sum(self.chord*self.space)
 	@property
 	def cl(self):
-		return -2*np.mean(self.kappa)/np.mean(self.chord)
+		return -2*sum(self.kappa*self.space)/sum(self.chord*self.space)
 	@property
 	def cdi(self):
-		return 2*np.mean(self.kappa*self.upwash)/np.mean(self.chord)
+		return 2*sum(self.kappa*self.upwash*self.space)/sum(self.chord*self.space)
 	@property
 	def e(self):
 		return (self.cl**2)/(math.pi*self.ar*self.cdi)
 
 	def vcoef(self,y,n):
-		return (1/(self.dy*(n+1)-y) - 1/(self.dy*n-y))/(4*math.pi)
+		return (1/(sum(self.space[:n+1])-y) - 1/(sum(self.space[:n])-y))/(4*math.pi)
 
 	def solve(self,alpha):
 		print('start')
@@ -498,14 +509,34 @@ class LiftingLine(object):
 		for m in range(len(self.chord)):
 			eq = []
 			for n in range(len(self.chord)):
-				eq.append(math.pi*self.chord[m]*-self.vcoef(self.dy*(m+0.5),n))
+				eq.append(math.pi*self.chord[m]*-self.vcoef(sum(self.space[:m])+self.space[m]*0.5,n))
 			eq[m] -= 1
 			eqns.append(eq)
 			b.append([math.pi*self.chord[m]*alpha])
 		eqns,b = np.array(eqns),np.array(b)
 		print('solve')
-		self.kappa = np.linalg.solve(eqns,b)
+		self.kappa = np.linalg.solve(eqns,b).flatten()
 		for m in range(len(self.chord)):
 			for n in range(len(self.chord)):
-				self.upwash[m] += self.kappa[n]*self.vcoef(self.dy*(m + 0.5),n)
+				self.upwash[m] += self.kappa[n]*self.vcoef(sum(self.space[:m]) + self.space[m]*0.5,n)
+
+	def plot(self):
+		n = len(self.space)
+		plt.plot(self.plotx,self.kappa)
+		print(max(abs(self.kappa)))
+		elip = [-math.sqrt((n/2)**2 - (m-n/2)**2)/(n/2)*max(abs(self.kappa)) for m in range(n)]
+		plt.plot(np.linspace(0,1,n),elip)
+		plt.plot(self.plotx,self.upwash)
+		plt.show()
+
+	def print(self):
+		n = len(self.space)
+		print("cl",self.cl,"cdi",self.cdi)
+		print("ar",self.ar)
+		print("e",self.e)
+		print()
+		wash = self.upwash[int(n/2)]
+		print("wash",wash,'alpha',2*math.pi/180,"cdi/cl",self.cdi/self.cl)
+		alpha500 = 2*math.pi/180 + wash
+		print("correct",math.pi*self.chord[50]*alpha500, "actual", self.kappa[int(n/2)] )
 
