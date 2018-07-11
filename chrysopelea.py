@@ -484,7 +484,7 @@ class LiftingLine(object):
 			self.chord = np.zeros(n) + 0.1
 		elif chord == 'elipse':
 			self.chord = 0.1*np.sin(np.linspace(0,math.pi,n))
-		self.plotx = 0.5*np.cos(np.linspace(0,math.pi,n)) + 0.5
+		self.x = 0.5*(x[1:] + x[:-1]) + 0.5
 
 	@property
 	def ar(self):
@@ -509,24 +509,25 @@ class LiftingLine(object):
 		for m in range(len(self.chord)):
 			eq = []
 			for n in range(len(self.chord)):
-				eq.append(math.pi*self.chord[m]*-self.vcoef(sum(self.space[:m])+self.space[m]*0.5,n))
+				eq.append(math.pi*self.chord[m]*-self.vcoef(self.x[m],n))
 			eq[m] -= 1
 			eqns.append(eq)
 			b.append([math.pi*self.chord[m]*alpha])
 		eqns,b = np.array(eqns),np.array(b)
 		print('solve')
 		self.kappa = np.linalg.solve(eqns,b).flatten()
+		print('finish')
 		for m in range(len(self.chord)):
 			for n in range(len(self.chord)):
-				self.upwash[m] += self.kappa[n]*self.vcoef(sum(self.space[:m]) + self.space[m]*0.5,n)
+				self.upwash[m] += self.kappa[n]*self.vcoef(self.x[m],n)
 
 	def plot(self):
 		n = len(self.space)
-		plt.plot(self.plotx,self.kappa)
+		plt.plot(self.x,self.kappa)
 		print(max(abs(self.kappa)))
 		elip = [-math.sqrt((n/2)**2 - (m-n/2)**2)/(n/2)*max(abs(self.kappa)) for m in range(n)]
 		plt.plot(np.linspace(0,1,n),elip)
-		plt.plot(self.plotx,self.upwash)
+		plt.plot(self.x,self.upwash)
 		plt.show()
 
 	def print(self):
