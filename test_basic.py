@@ -1,16 +1,18 @@
 from chrysopelea import *
 
 s = 'uniform'
+#s = 'sin'
 
-print("hershey bar")
-for n in [200*m for m in range(1,4)]:
+for n in [100*m for m in [20]]:
+	print("hershey bar")
 	line = LiftingLine(n=n,chord='uniform',space=s)
 	line.solve(2*math.pi/180)
-	print(line.e)
-line.plot()
-print("elipse")
-for n in [100*m for m in range(1,6)]:
+	line.plot()
+	line.print()
+	"""
+	print("elipse")
 	line = LiftingLine(n=n,chord='elipse',space=s)
 	line.solve(2*math.pi/180)
-	print(line.e)
-line.plot()
+	line.plot()
+	line.print()
+	"""

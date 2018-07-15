@@ -485,17 +485,9 @@ class LiftingLine(object):
 			self.space = space
 
 		if chord == 'uniform':
-			self.chord = np.zeros(n) + 0.1
+			self.chord = np.zeros(n) + 0.01
 		elif chord == 'elipse':
-			self.chord = 0.1*np.sqrt(1-(2*self.x-1)**2)
-		"""
-		plt.plot(self.x)
-		plt.show()
-		plt.plot(self.x,self.chord)
-		plt.show()
-		plt.plot(self.x,self.space)
-		plt.show()
-		"""
+			self.chord = 0.01*np.sqrt(1-(2*self.x-1)**2)
 
 	@property
 	def ar(self):
@@ -516,29 +508,22 @@ class LiftingLine(object):
 	def e(self):
 		return ((self.cl**2)/(math.pi*self.ar*self.cdi),(2*self.L**2)/(math.pi*self.D))
 
-	def vcoef(self,y,n):
-		return (1/(self.x[n]+self.space[n]/2-y) - 1/(self.x[n]-self.space[n]/2-y))/(4*math.pi)
-	@np.vectorize
-	def eqcoef(self,m,n):
-		return self.vcoef(self.x[m],n)
-	@np.vectorize
-	def wash(self,m,n):
-		return self.kappa[n]*self.vcoef(self.x[m],n)
+	def vcoef(self,y):
+		return -(1/(self.x-self.space/2-y) - 1/(self.x+self.space/2-y))/(4*math.pi)
 
 	def solve(self,alpha):
-		b = -alpha+np.zeros(len(self.x))
+		b = np.zeros(len(self.x))+alpha
 		m = np.array([range(len(self.x))])
 		n = m.transpose()
-		eqns = self.eqcoef(self,m,n)
-		eqns += np.identity(len(self.x))/(math.pi*self.chord)
+		eqns = -self.vcoef(np.array([self.x]).transpose())
+		eqns -= np.identity(len(self.x))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
-		self.upwash = self.wash(self,m,n).sum(0)
+		self.upwash = np.dot( self.vcoef( np.array([self.x]).transpose() ) ,self.kappa)
 
 	def plot(self):
 		n = len(self.space)
 		plt.plot(self.x,self.kappa)
 		print(max(abs(self.kappa)))
-		#elip = [-math.sqrt((n/2)**2 - (m-n/2)**2)/(n/2)*max(abs(self.kappa)) for m in range(n)]
 		elip = -self.elip*max(abs(self.kappa))
 		plt.plot(self.x,elip)
 		plt.plot(self.x,self.upwash)
