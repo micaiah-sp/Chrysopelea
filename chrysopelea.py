@@ -474,8 +474,8 @@ class LiftingLine(object):
 		self.upwash= np.zeros(n)
 
 		if space == 'uniform':
+			self.x = np.linspace(0.5/n,1-0.5/n,n)
 			self.space = np.zeros(n) + 1/n
-			self.x = np.linspace(0,1,n+2)[1:-1]
 			self.elip = 2*np.sqrt(0.25-(self.x-0.5)**2)
 		elif space == 'sin':
 			self.space = x[1:]-x[:-1]
@@ -485,9 +485,10 @@ class LiftingLine(object):
 			self.space = space
 
 		if chord == 'uniform':
-			self.chord = np.zeros(n) + 0.01
+			self.chord = np.zeros(n) + 0.1
 		elif chord == 'elipse':
 			self.chord = 0.01*np.sqrt(1-(2*self.x-1)**2)
+		print(self.space)
 
 	@property
 	def ar(self):
@@ -519,6 +520,8 @@ class LiftingLine(object):
 		eqns -= np.identity(len(self.x))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
 		self.upwash = np.dot( self.vcoef( np.array([self.x]).transpose() ) ,self.kappa)
+		plt.plot(self.x,self.vcoef( np.array([self.x]).transpose() ).sum(1)/100)
+		plt.plot(self.x,(1/( - self.x) - 1/(1 - self.x))/(-400*math.pi) )
 
 	def plot(self):
 		n = len(self.space)
