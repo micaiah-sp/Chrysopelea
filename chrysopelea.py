@@ -467,27 +467,39 @@ class imperial_dynamic(dynamic):
 
 class LiftingLine(object):
 
-	def __init__(self,n=100, chord='elipse',scale=0.1,space = 'sin'):
-		theta = np.linspace(0,math.pi,n+1)
-		x = -np.cos(theta)/2
+	def __init__(self,n=100, chord='elipse',scale=0.1,x=0,y = 'cos',z=0):
+
+		if y == 'uniform':
+			selfy = np.linspace(0.5/n,1-0.5/n,n)
+			self.space = np.zeros(n) + 1/n
+			self.elip = 2*np.sqrt(0.25-(selfy-0.5)**2)
+		elif y == 'sin':
+			theta = np.linspace(0,math.pi,n+1)
+			yvec = -np.cos(theta)/2
+			self.space = yvec[1:]-yvec[:-1]
+			self.elip = np.sin(np.linspace(0,math.pi,n))
+			selfy = 0.5*(yvec[1:] + yvec[:-1]) + 0.5
+		else:
+			selfy = y
+			n = len(y)
+
+		selfx = np.zeros(n) + x
+		selfz = np.zeros(n) + z
+		self.r = np.array([selfx,selfy,selfz])
+
 		self.kappa = np.zeros(n)
 		self.upwash= np.zeros(n)
-
-		if space == 'uniform':
-			self.x = np.linspace(0.5/n,1-0.5/n,n)
-			self.space = np.zeros(n) + 1/n
-			self.elip = 2*np.sqrt(0.25-(self.x-0.5)**2)
-		elif space == 'sin':
-			self.space = x[1:]-x[:-1]
-			self.elip = np.sin(np.linspace(0,math.pi,n))
-			self.x = 0.5*(x[1:] + x[:-1]) + 0.5
-		else:
-			self.space = space
 
 		if chord == 'uniform':
 			self.chord = np.zeros(n) + scale
 		elif chord == 'elipse':
-			self.chord = scale*np.sqrt(1-(2*self.x-1)**2)
+			self.chord = scale*np.sqrt(1-(2*self.r[1]-1)**2)
+		self.set_mesh()
+
+	def set_mesh(self):
+		r0,r1 = 2*self.r[:,-1] - self.r[:,-2], 2*self.r[:,0] - self.r[:,1]
+		self.r_minus = (np.concatenate([np.array([r1]).transpose(), self.r[:,:-1]],1) + self.r)/2
+		self.r_plus = (np.concatenate([self.r[:,1:], np.array([r0]).transpose()],1) + self.r)/2
 
 	@property
 	def ar(self):
@@ -508,34 +520,47 @@ class LiftingLine(object):
 	def e(self):
 		return (self.cl**2)/(math.pi*self.ar*self.cdi)
 
-	def vcoef(self,y):
-		return -(1/(self.x-self.space/2-y) - 1/(self.x+self.space/2-y))/(4*math.pi)
-
+	def vcoef(self,x,y,z):
+		delta_y_plus,delta_z_plus = self.r_plus[1,:]-y,self.r_plus[2,:]-z
+		delta_y_minus,delta_z_minus = self.r_minus[1,:]-y,self.r_minus[2,:]-z
+		lat_dist_plus = np.sqrt(delta_y_plus**2 + delta_z_plus**2)
+		lat_dist_minus = np.sqrt(delta_y_minus**2 + delta_z_minus**2)
+		sweep_effect_plus = 2/math.pi*np.arctan( (x-self.r_plus[0,:])/lat_dist_plus) - 1
+		sweep_effect_minus = 2/math.pi*np.arctan( (x-self.r_minus[0,:])/lat_dist_minus) - 1
+		print(sweep_effect_plus,sweep_effect_minus)
+		return (sweep_effect_minus*delta_y_minus/(lat_dist_minus**2) - sweep_effect_plus*delta_y_plus/lat_dist_plus**2)/(4*math.pi)
 	def solve(self,alpha):
-		b = np.zeros(len(self.x))+alpha
-		m = np.array([range(len(self.x))])
-		n = m.transpose()
-		eqns = -self.vcoef(np.array([self.x]).transpose())
-		self.mat = eqns.copy()
-		eqns -= np.identity(len(self.x))/(math.pi*self.chord)
+		b = np.zeros(len(self.r[0]))+alpha
+		x,y,z = np.array([self.r[0]]).transpose(),np.array([self.r[1]]).transpose(),np.array([self.r[2]]).transpose()
+		vcoef = self.vcoef(x,y,z)
+		print(vcoef)
+		eqns = -vcoef - np.identity(len(y))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
-		self.upwash = np.dot( self.vcoef( np.array([self.x]).transpose() ) ,self.kappa)
+		self.upwash = np.dot( vcoef ,self.kappa)
 
 	def plot(self):
 		n = len(self.space)
-		plt.plot(self.x,self.kappa)
+		plt.plot(self.r[1],self.kappa)
 		elip = -self.elip*max(abs(self.kappa))
-		plt.plot(self.x,elip)
-		plt.plot(self.x,self.upwash)
+		plt.plot(self.r[1],elip)
+		plt.plot(self.r[1],self.upwash)
 		plt.show()
 
 	def plot_circ(self):
 		circ = self.kappa/self.kappa.mean()
-		plt.plot(self.x,circ)
+		plt.plot(self.y,circ)
 
 	def plot_wash(self):
 		wash = self.upwash/self.upwash.min()
-		plt.plot(self.x,wash)
+		plt.plot(self.y,wash)
+
+	def plot_planform(self):
+		plt.axis('equal')
+		plt.scatter(self.r[0],self.r[1],color='k')
+		plt.scatter(self.r_plus[0],self.r_plus[1],color='r')
+		plt.scatter(self.r_minus[0],self.r_minus[1],color='r')
+		plt.plot(self.r[0]+0.75*self.chord,self.r[1],color='b')
+		plt.plot(self.r[0]-0.25*self.chord,self.r[1],color='b')
 
 	def print(self):
 		n = len(self.space)
