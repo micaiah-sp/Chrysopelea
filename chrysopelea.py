@@ -467,7 +467,7 @@ class imperial_dynamic(dynamic):
 
 class LiftingLine(object):
 
-	def __init__(self,n=100, chord='elipse',space = 'sin'):
+	def __init__(self,n=100, chord='elipse',scale=0.1,space = 'sin'):
 		theta = np.linspace(0,math.pi,n+1)
 		x = -np.cos(theta)/2
 		self.kappa = np.zeros(n)
@@ -485,10 +485,9 @@ class LiftingLine(object):
 			self.space = space
 
 		if chord == 'uniform':
-			self.chord = np.zeros(n) + 0.1
+			self.chord = np.zeros(n) + scale
 		elif chord == 'elipse':
-			self.chord = 0.01*np.sqrt(1-(2*self.x-1)**2)
-		print(self.space)
+			self.chord = scale*np.sqrt(1-(2*self.x-1)**2)
 
 	@property
 	def ar(self):
@@ -507,7 +506,7 @@ class LiftingLine(object):
 		return sum(self.kappa*self.upwash*self.space)
 	@property
 	def e(self):
-		return ((self.cl**2)/(math.pi*self.ar*self.cdi),(2*self.L**2)/(math.pi*self.D))
+		return (self.cl**2)/(math.pi*self.ar*self.cdi)
 
 	def vcoef(self,y):
 		return -(1/(self.x-self.space/2-y) - 1/(self.x+self.space/2-y))/(4*math.pi)
@@ -517,20 +516,26 @@ class LiftingLine(object):
 		m = np.array([range(len(self.x))])
 		n = m.transpose()
 		eqns = -self.vcoef(np.array([self.x]).transpose())
+		self.mat = eqns.copy()
 		eqns -= np.identity(len(self.x))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
 		self.upwash = np.dot( self.vcoef( np.array([self.x]).transpose() ) ,self.kappa)
-		plt.plot(self.x,self.vcoef( np.array([self.x]).transpose() ).sum(1)/100)
-		plt.plot(self.x,(1/( - self.x) - 1/(1 - self.x))/(-400*math.pi) )
 
 	def plot(self):
 		n = len(self.space)
 		plt.plot(self.x,self.kappa)
-		print(max(abs(self.kappa)))
 		elip = -self.elip*max(abs(self.kappa))
 		plt.plot(self.x,elip)
 		plt.plot(self.x,self.upwash)
 		plt.show()
+
+	def plot_circ(self):
+		circ = self.kappa/self.kappa.mean()
+		plt.plot(self.x,circ)
+
+	def plot_wash(self):
+		wash = self.upwash/self.upwash.min()
+		plt.plot(self.x,wash)
 
 	def print(self):
 		n = len(self.space)
