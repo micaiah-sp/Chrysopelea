@@ -128,15 +128,15 @@ x""".format(cmd)
 		if not self.output:
 			self.set_attitude()
 		text = self.output.split('Vortex Lattice Output -- Total Forces')[1]
-		text = re.split("{} = *".format(var),text)[1].split(' ')[0]
+		text = re.split("{} *= *".format(var),text)[1].split(' ')[0]
 		return float(text)
 
 	@property
 	def cl(self):
-		return self.get_output('CLtot')
+		return self.get_output('CLff')
 	@property
 	def cdi(self):
-		return self.get_output('CDind')
+		return self.get_output('CDff')
 	@property
 	def alpha(self):
 		return self.get_output('Alpha')
@@ -217,9 +217,14 @@ class Surface(object):
 		self.sections = Surface.sections.copy()
 		self.name = name
 
-	def add_section(self,xyz, chord, afile = 'sd7062.dat'):
-		sec = xfoil(file=afile,position=xyz,chord=chord)
+	def add_afile(self,xyz, chord, afile='sd7062.dat',nspan=10):
+		sec = xfoil(file=afile,position=xyz,chord=chord,nspan=nspan)
 		sec.parent = self
+		self.sections.append(sec)
+
+	def add_naca(self,xyz,chord,desig="0014",nspan=10):
+		sec = naca(position=xyz,chord=chord,desig=desig,nspan=nspan)
+		sec.parent=self
 		self.sections.append(sec)
 
 	def __repr__(self):
@@ -247,8 +252,7 @@ SURFACE
 	def area(self):
 		a = 0
 		for n in range(1,len(self.sections)):
-			a += 0.5*abs(self.sections[n].position[1] - self.sections[n-1].position[1])\
-*(self.sections[n].chord + self.sections[n-1].chord)
+			a += 0.5*abs(self.sections[n].position[1] - self.sections[n-1].position[1])*(self.sections[n].chord + self.sections[n-1].chord)
 		if self.yduplicate != None:
 			a *= 2
 		return a
@@ -377,6 +381,26 @@ SECTION
 AFILE
 {}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.file)
 
+class naca(xfoil):
+
+	def __init__(self, desig="0014",position=[0,0,0],chord=1,sspace=1,nspan=10):
+		self.file = "NOT IMPLEMENTED"
+		self.desig = desig
+		self.position=position
+		self.chord = chord
+		self.sspace = sspace
+		self.nspan = nspan
+
+	def __str__(self):
+		return """
+#----------------------------------------------
+SECTION
+#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
+{} 	 	{} 	 	{} 	 	{} 	 	0 	 	{} 	 	{} 
+NACA
+{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.desig)
+
+
 ############ motor class #####################
 
 class motor(object):
@@ -469,18 +493,17 @@ class LiftingLine(object):
 
 	def __init__(self,n=100, chord='elipse',scale=0.1,x=0,y = 'cos',z=0):
 
-		if y == 'uniform':
+		if np.array_equal(y,'uniform'):
 			selfy = np.linspace(0.5/n,1-0.5/n,n)
-			self.space = np.zeros(n) + 1/n
 			self.elip = 2*np.sqrt(0.25-(selfy-0.5)**2)
-		elif y == 'sin':
+		elif np.array_equal(y,'cos'):
 			theta = np.linspace(0,math.pi,n+1)
 			yvec = -np.cos(theta)/2
-			self.space = yvec[1:]-yvec[:-1]
 			self.elip = np.sin(np.linspace(0,math.pi,n))
 			selfy = 0.5*(yvec[1:] + yvec[:-1]) + 0.5
 		else:
 			selfy = y
+			self.elip = 2*np.sqrt(0.25-(selfy-0.5)**2)
 			n = len(y)
 
 		selfx = np.zeros(n) + x
@@ -490,20 +513,29 @@ class LiftingLine(object):
 		self.kappa = np.zeros(n)
 		self.upwash= np.zeros(n)
 
-		if chord == 'uniform':
+		if np.array_equal(chord,'uniform'):
 			self.chord = np.zeros(n) + scale
-		elif chord == 'elipse':
+		elif np.array_equal(chord,'elipse'):
 			self.chord = scale*np.sqrt(1-(2*self.r[1]-1)**2)
+		else:
+			self.chord = chord
 		self.set_mesh()
 
 	def set_mesh(self):
 		r0,r1 = 2*self.r[:,-1] - self.r[:,-2], 2*self.r[:,0] - self.r[:,1]
 		self.r_minus = (np.concatenate([np.array([r1]).transpose(), self.r[:,:-1]],1) + self.r)/2
 		self.r_plus = (np.concatenate([self.r[:,1:], np.array([r0]).transpose()],1) + self.r)/2
+		diff = self.r_plus - self.r_minus
+		self.space = diff[1]
+		self.arcspace = np.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
+		self.arclen = self.arcspace.sum()
 
 	@property
 	def ar(self):
 		return 1/sum(self.chord*self.space)
+	@property
+	def area(self):
+		return sum(self.chord*self.space)
 	@property
 	def cl(self):
 		return -2*sum(self.kappa*self.space)/sum(self.chord*self.space)
@@ -519,21 +551,23 @@ class LiftingLine(object):
 	@property
 	def e(self):
 		return (self.cl**2)/(math.pi*self.ar*self.cdi)
+	@property
+	def lengthwise_e(self):
+		return (2*self.L**2)/(math.pi*self.D*self.arclen**2)
 
 	def vcoef(self,x,y,z):
 		delta_y_plus,delta_z_plus = self.r_plus[1,:]-y,self.r_plus[2,:]-z
 		delta_y_minus,delta_z_minus = self.r_minus[1,:]-y,self.r_minus[2,:]-z
 		lat_dist_plus = np.sqrt(delta_y_plus**2 + delta_z_plus**2)
 		lat_dist_minus = np.sqrt(delta_y_minus**2 + delta_z_minus**2)
-		sweep_effect_plus = 2/math.pi*np.arctan( (x-self.r_plus[0,:])/lat_dist_plus) - 1
-		sweep_effect_minus = 2/math.pi*np.arctan( (x-self.r_minus[0,:])/lat_dist_minus) - 1
-		print(sweep_effect_plus,sweep_effect_minus)
-		return (sweep_effect_minus*delta_y_minus/(lat_dist_minus**2) - sweep_effect_plus*delta_y_plus/lat_dist_plus**2)/(4*math.pi)
+		sweep_effect_plus = 2/math.pi*np.arctan( (x-self.r_plus[0,:])/lat_dist_plus) + 1
+		sweep_effect_minus = 2/math.pi*np.arctan( (x-self.r_minus[0,:])/lat_dist_minus) + 1
+		return (sweep_effect_plus*delta_y_plus/lat_dist_plus**2 - sweep_effect_minus*delta_y_minus/lat_dist_minus**2)/(4*math.pi)
+
 	def solve(self,alpha):
 		b = np.zeros(len(self.r[0]))+alpha
 		x,y,z = np.array([self.r[0]]).transpose(),np.array([self.r[1]]).transpose(),np.array([self.r[2]]).transpose()
 		vcoef = self.vcoef(x,y,z)
-		print(vcoef)
 		eqns = -vcoef - np.identity(len(y))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
 		self.upwash = np.dot( vcoef ,self.kappa)
@@ -544,7 +578,6 @@ class LiftingLine(object):
 		elip = -self.elip*max(abs(self.kappa))
 		plt.plot(self.r[1],elip)
 		plt.plot(self.r[1],self.upwash)
-		plt.show()
 
 	def plot_circ(self):
 		circ = self.kappa/self.kappa.mean()
