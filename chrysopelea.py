@@ -298,9 +298,9 @@ SURFACE
 			if len(afile) > 1:
 				afile = afile[1]
 				afile = re.split('\n|\t',afile)[0]
-				s.add_section(coord,chord,afile=afile)
+				s.add_afile(coord,chord,afile=afile)
 			else:
-				s.add_section(coord,chord)
+				s.add_naca(coord,chord)
 		return s
 
 	def scale(self, factor):
@@ -335,7 +335,6 @@ class xfoil(object):
 		else:
 			oper = "alfa 0"
 			self.execute(oper)
-			print(self.output)
 			xfoil.computed[self.file] = self.output.iloc[0]['CD']
 			return self.cd0
 
@@ -384,12 +383,15 @@ AFILE
 class naca(xfoil):
 
 	def __init__(self, desig="0014",position=[0,0,0],chord=1,sspace=1,nspan=10):
-		self.file = "NOT IMPLEMENTED"
-		self.desig = desig
+		self.file = desig
 		self.position=position
 		self.chord = chord
 		self.sspace = sspace
 		self.nspan = nspan
+
+	@property
+	def load_cmd(self):
+		return "naca {}".format(self.file)
 
 	def __str__(self):
 		return """
@@ -398,7 +400,7 @@ SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
 {} 	 	{} 	 	{} 	 	{} 	 	0 	 	{} 	 	{} 
 NACA
-{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.desig)
+{}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.file)
 
 
 ############ motor class #####################
@@ -414,74 +416,99 @@ class motor(object):
 
 ############### flight dynamics class ######################
 
-class dynamic(fast_avl):
+class dynamic(avl):
 	# aircraft characteristics
 	weight = 1
 	extra_drag = 0		# D/q
 	motor = motor()
 
-	# flight conditions
+	# freestream conditions
 	speed = 1
 	rho = 1.225
 	mu = 18.27 * 10**-6
 
-	# computational parameters
-	speed_limits = (25,100)
-	phi_limits = -math.pi/2,math.pi/2
-	side_points = 10
 	@property
 	def cd0(self):
 		c = 0
 		for k in self.surfaces.keys():
 			c += self.surfaces[k].cd0*self.surfaces[k].area
-		c += self.extra_drag
 		c /= self.area
+		c += self.extra_drag
 		return c
 
-	def q(self,v):
-		return 0.5*self.rho*v**2
-
-	def drag(self,v,phi):
-		"""
-		v is the speed,
-		phi is the angle of elevation of the climb trajectory
-		"""
-		q = self.q(v)
-		cl = self.weight*math.cos(phi)/(q*self.area)
-		self.set_attitude(cl=cl)
-		return q*self.area*(self.cd0 + self.cdi)
-
-	def climb_envelope(self,plot=False):
-		t0 = time.time()
-		succeed = ([],[])
-		fail = ([],[])
-		for v in np.linspace(self.speed_limits[0],self.speed_limits[1],self.side_points):
-			for phi in np.linspace(self.phi_limits[0],self.phi_limits[1],self.side_points):
-				drag = self.drag(v,phi)
-				thrust = self.motor.thrust(v)
-				if thrust >= drag + self.weight*math.sin(phi):
-					succeed[0].append(v)
-					succeed[1].append(phi)
-				else:
-					fail[0].append(v)
-					fail[1].append(phi)
-		print('This call took')
-		print(time.time()-t0)
-		print('seconds')
-		if plot:
-			plt.scatter(succeed[0],succeed[1],c='g')
-			plt.scatter(fail[0],fail[1],c='r')
-			plt.xlabel('v')
-			plt.ylabel('phi')
-			plt.show()
-
-		return succeed,fail
+	@property
+	def thrust(self):
+		return self.motor.thrust(self.speed)
 
 	@property
-	def max_climb_rate(self):
-		succeed,fail = self.climb_envelope(plot=True)
-		climb_rates = [succeed[0][n]*math.sin(succeed[1][n]) for n in range(len(succeed[0]))]
-		return max(climb_rates)
+	def climb_cl(self):
+		a = 0.25* self.rho**2 * self.speed**4 * self.area**2/(math.pi*self.ar*self.e)**2
+		b = 0.25*self.rho**2 * self.speed**4 *self.area**2 *(1 + 2*self.cd0/(math.pi*self.ar*self.e))
+		b -= self.thrust*self.rho* self.speed**2 * self.area / (math.pi*self.ar*self.e)
+		c = self.thrust**2 + 0.25*self.rho**2 * self.speed**4 * self.area**2 * self.cd0**2
+		c -=  self.weight**2 + self.thrust*self.rho*self.speed**2 * self.area*self.cd0
+		l = math.sqrt( (-b + math.sqrt(b**2 - 4*a*c)) / (2*a) ) # ignore the extraneous solution where cl**2 < 0
+		return l
+
+	@property
+	def slope(self):
+		return (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.cdi + self.cd0))/self.weight
+	@property
+	def roc(self):
+		return self.slope*self.speed
+		
+
+	def climb_plot(self):
+		v = list(range(30,150))
+		vs,cl,slope,rate = [],[],[],[]
+		for s in v:
+			try:
+				print(self.e)
+				self.speed = s
+				l = self.climb_cl
+				self.set_attitude(cl=l)
+				l = self.climb_cl
+				print("cdi form",l**2/(math.pi*self.ar*self.e))
+				self.set_attitude(cl=l)
+				sl = self.slope
+				print("cdi",self.cdi)
+				print("cd0",self.cd0)
+				slope.append(sl)
+				rate.append(sl*self.speed)
+				cl.append(l)
+				vs.append(s)
+			except:
+				pass
+		print(cl)
+		print(vs)
+		plt.plot(vs,cl,label="cl")
+		plt.plot(vs,slope,label="slope")
+		plt.plot(vs,rate,label="rate")
+		plt.legend()
+		plt.show()
+
+	def climb_rate(self):
+		dv = 0.1
+		self.speed = 80
+		for n in range(10):
+			t = self.thrust
+			dt = 0
+			self.speed += dv
+			cl = self.climb_cl
+			self.set_attitude(cl=cl)
+			cd1 = self.cdi+self.cd0
+			self.speed -= dv
+			cl = self.climb_cl
+			self.set_attitude(cl=cl)
+			cd = self.cdi+self.cd0
+			print(cd,cd1)
+			dcd = (cd1-cd)/dv
+			#dcd = 0
+			print(self.roc,self.speed,t,dt,cd,dcd)
+			self.speed = np.roots([-0.5*self.rho*self.area/self.weight*dcd,-1.5*self.rho*cd*self.area/self.weight, dt/self.weight, t/self.weight])
+			print(self.speed)
+			self.speed = max(self.speed)
+			print(self.speed)
 
 class imperial_dynamic(dynamic):
 	rho = 0.0023769
@@ -571,6 +598,11 @@ class LiftingLine(object):
 		eqns = -vcoef - np.identity(len(y))/(math.pi*self.chord)
 		self.kappa = np.linalg.solve(eqns,b).flatten()
 		self.upwash = np.dot( vcoef ,self.kappa)
+	def solve_no_wash(self,alpha):
+		b = np.zeros(len(self.r[0]))+alpha
+		eqns = -np.identity(len(self.r[0]))/(math.pi*self.chord)
+		self.kappa = np.linalg.solve(eqns,b).flatten()
+		self.upwash *= 0
 
 	def plot(self):
 		n = len(self.space)
