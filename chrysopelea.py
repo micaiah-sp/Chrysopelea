@@ -83,6 +83,7 @@ Advanced
 		self.surfaces[surf.name] = surf
 
 	def execute(self,operations):
+		print('AVL Executed!')
 		input = open('chrysopelea.avl','w')
 		input.write(str(self))
 		input.close()
@@ -421,11 +422,14 @@ class dynamic(avl):
 	weight = 1
 	extra_drag = 0		# D/q
 	motor = motor()
+	alpha_max = 10
+	rolling_mu = 0
 
 	# freestream conditions
 	speed = 1
 	rho = 1.225
 	mu = 18.27 * 10**-6
+	g = 9.80665
 
 	@property
 	def cd0(self):
@@ -485,34 +489,55 @@ class dynamic(avl):
 		plt.plot(vs,slope,label="slope")
 		plt.plot(vs,rate,label="rate")
 		plt.legend()
-		plt.show()
 
-	def climb_rate(self):
-		dv = 0.1
-		self.speed = 80
-		for n in range(10):
-			t = self.thrust
-			dt = 0
+	def optimize_roc(self,plot=False):
+		v0 = 0
+		dv = 1
+		vs,rates=[],[]
+		self.speed = 90
+		self.set_attitude(cl=self.climb_cl)
+		while self.speed - v0 > 1:
+			self.set_attitude(cl=self.climb_cl)
+			r0 = self.roc
+			v0 = self.speed
 			self.speed += dv
-			cl = self.climb_cl
-			self.set_attitude(cl=cl)
-			cd1 = self.cdi+self.cd0
-			self.speed -= dv
-			cl = self.climb_cl
-			self.set_attitude(cl=cl)
-			cd = self.cdi+self.cd0
-			print(cd,cd1)
-			dcd = (cd1-cd)/dv
-			#dcd = 0
-			print(self.roc,self.speed,t,dt,cd,dcd)
-			self.speed = np.roots([-0.5*self.rho*self.area/self.weight*dcd,-1.5*self.rho*cd*self.area/self.weight, dt/self.weight, t/self.weight])
-			print(self.speed)
-			self.speed = max(self.speed)
-			print(self.speed)
+			self.set_attitude(cl=self.climb_cl)
+			r1 = self.roc
+			v1 = self.speed
+			self.speed += dv
+			self.set_attitude(cl=self.climb_cl)
+			r2 = self.roc
+			v2 = self.speed
+			coefs = np.polyfit([v0,v1,v2],[r0,r1,r2],2)
+			if plot:
+				vs.append(v0)
+				rates.append(r0)
+				testv = np.linspace(0,100,100)
+				testr = testv**2*coefs[0] + testv*coefs[1] + coefs[2]
+				plt.plot(testv,testr)
+			self.speed = -0.5*coefs[1]/coefs[0]
+		if plot:
+			self.set_attitude(cl=self.climb_cl)
+			plt.scatter(vs+[self.speed],rates+[self.roc])
+
+	@property
+	def v_stall(self):
+		self.set_attitude(alpha=self.alpha_max)
+		return math.sqrt(2*self.weight/(self.rho*self.cl*self.area))
+
+	def takeoff_distance(self,safety_factor=1.2,alpha=0,motor_decriment=0,lame=False):
+		vto = self.v_stall*safety_factor
+		self.set_attitude(alpha=alpha)
+		if lame:
+			return 1/(self.g*(self.motor.static_thrust/self.weight+self.rolling_mu - 0.5*self.rho*vto**2/2/self.weight*(self.cd0 + self.cdi - self.rolling_mu*self.cl)))*vto**2/2
+		a = self.g*(self.motor.static_thrust/self.weight-self.rolling_mu)
+		b = self.g/self.weight*(0.5*self.rho*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl) + motor_decriment)
+		return 0.5/b*math.log(a/(a - b*vto**2))
 
 class imperial_dynamic(dynamic):
 	rho = 0.0023769
 	mu = 0.3766*10**-6
+	g = 32.17405
 
 ############ lifting line class ##########
 
