@@ -27,6 +27,10 @@ class dynamic(avl):
 	mu = 18.27 * 10**-6
 	g = 9.80665
 
+	# numerical computation parameters
+	dv = 1
+	vtol = 1
+
 	# unit names for printing
 	length = "m"
 	mass = "kg"
@@ -94,22 +98,26 @@ class dynamic(avl):
 		plt.legend()
 
 	def optimize_roc(self,plot=False):
+		"""
+		Note to programmer: speed this up by only set_attitude 
+		once per loop execution
+		"""
 		v0 = 0
-		dv = 1
 		vs,rates=[],[]
-		self.speed = 90
+		self.speed = self.v_stall
 		self.set_attitude(alpha=0)
-		while self.speed - v0 > 1:
+		while abs(self.speed - v0) > self.vtol:
 			self.set_attitude(cl=self.climb_cl)
-			r0 = self.roc
+			slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+			r0 = slope*self.speed
 			v0 = self.speed
-			self.speed += dv
-			self.set_attitude(cl=self.climb_cl)
-			r1 = self.roc
+			self.speed += self.dv
+			slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+			r1 = slope*self.speed
 			v1 = self.speed
-			self.speed += dv
-			self.set_attitude(cl=self.climb_cl)
-			r2 = self.roc
+			self.speed += self.dv
+			slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+			r2 = slope*self.speed
 			v2 = self.speed
 			coefs = np.polyfit([v0,v1,v2],[r0,r1,r2],2)
 			if plot:
@@ -119,8 +127,8 @@ class dynamic(avl):
 				testr = testv**2*coefs[0] + testv*coefs[1] + coefs[2]
 				plt.plot(testv,testr)
 			self.speed = -0.5*coefs[1]/coefs[0]
+		self.set_attitude(cl=self.climb_cl)
 		if plot:
-			self.set_attitude(cl=self.climb_cl)
 			plt.scatter(vs+[self.speed],rates+[self.roc])
 
 	@property
@@ -141,21 +149,45 @@ class dynamic(avl):
 		return 0.5/b*math.log(a/(a - b*vto**2))
 
 	@property
-	def v_max(self):
+	def v_max(self,plot=False):
+		vs,excess_thrusts=[],[]
 		self.speed = self.v_stall
 		v0 = 0
-		while self.speed - v0 > 1:
+		while abs(self.speed - v0) > self.vtol:
+			self.set_attitude(cl=self.weight/(0.5*self.rho*self.area*self.speed**2))
+			e = self.e
+			cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+			excess_thrust0 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
 			v0 = self.speed
-			cl = self.weight/(0.5*self.rho*self.speed**2*self.area)
-			self.set_attitude(cl=cl)
-			ignore = self.thrust + math.sqrt(self.thrust**2 - 4*self.weight**2*self.cd0/(math.pi*self.ar*self.e))
-			self.speed = math.sqrt(self.rho*self.area/self.cd0*ignore)
+			self.speed += self.dv
+			cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+			excess_thrust1 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+			v1 = self.speed
+			self.speed += self.dv
+			cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+			excess_thrust2 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+			v2 = self.speed
+			coefs = np.polyfit([v0,v1,v2],[excess_thrust0,excess_thrust1,excess_thrust2],2)
+			self.speed = (-coefs[1] - math.sqrt(coefs[1]**2 - 4*coefs[0]*coefs[2]))/(2*coefs[0])
+			if plot:
+				vs.append(v0)
+				excess_thrusts.append(excess_thrust0)
+				testv = np.linspace(0,200,100)
+				testt = testv**2*coefs[0] + testv*coefs[1] + coefs[2]
+				plt.plot(testv,testt)
+		cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+		excess_thrust = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+		self.set_attitude(cl=self.weight/(0.5*self.rho*self.area*self.speed**2))
+		if plot:
+			plt.scatter(vs+[self.speed],excess_thrusts+[excess_thrust])
 		return self.speed
 
 	def print(self):
+		print("Stall Speed:  {} {} / {}".format(self.v_stall,self.length,self.time))
+		print("Top Speed:  {} {} / {}".format(self.v_max,self.length,self.time))
+		print("Takeoff Roll Distance:  {} {}".format(self.takeoff_distance(),self.length))
 		self.optimize_roc()
-		text = "Climb Rate: {} {} / {}".format(self.roc,self.length,self.time)
-		print(text)
+		print("Climb Rate:  {} {} / {}".format(self.roc,self.length,self.time))
 
 class imperial_dynamic(dynamic):
 	rho = 0.0023769
