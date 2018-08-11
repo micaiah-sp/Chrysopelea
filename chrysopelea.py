@@ -38,7 +38,7 @@ class dynamic(avl):
 	def cd0(self):
 		c = 0
 		for k in self.surfaces.keys():
-			c += self.surfaces[k].cd0*self.surfaces[k].area
+			c += self.surfaces[k].integrated_cd0
 		c /= self.area
 		c += self.extra_drag
 		return c
@@ -49,12 +49,14 @@ class dynamic(avl):
 
 	@property
 	def climb_cl(self):
+		print(self.thrust,self.rho,self.speed,self.area,self.cd0,math.pi,self.ar,self.e)
 		a = 0.25* self.rho**2 * self.speed**4 * self.area**2/(math.pi*self.ar*self.e)**2
 		b = 0.25*self.rho**2 * self.speed**4 *self.area**2 *(1 + 2*self.cd0/(math.pi*self.ar*self.e))
 		b -= self.thrust*self.rho* self.speed**2 * self.area / (math.pi*self.ar*self.e)
 		c = self.thrust**2 + 0.25*self.rho**2 * self.speed**4 * self.area**2 * self.cd0**2
 		c -=  self.weight**2 + self.thrust*self.rho*self.speed**2 * self.area*self.cd0
 		l = math.sqrt( (-b + math.sqrt(b**2 - 4*a*c)) / (2*a) ) # ignore the extraneous solution where cl**2 < 0
+		print(l)
 		return l
 
 	@property
@@ -98,17 +100,23 @@ class dynamic(avl):
 		dv = 1
 		vs,rates=[],[]
 		self.speed = 90
-		self.set_attitude(cl=self.climb_cl)
+		self.set_attitude(alpha=0)
+		print(self.cl,self.e)
 		while self.speed - v0 > 1:
+			print(self.speed)
+			print(self.climb_cl)
 			self.set_attitude(cl=self.climb_cl)
+			print(self.cl,self.e)
 			r0 = self.roc
 			v0 = self.speed
 			self.speed += dv
 			self.set_attitude(cl=self.climb_cl)
+			print(self.cl,self.e)
 			r1 = self.roc
 			v1 = self.speed
 			self.speed += dv
 			self.set_attitude(cl=self.climb_cl)
+			print(self.cl,self.e)
 			r2 = self.roc
 			v2 = self.speed
 			coefs = np.polyfit([v0,v1,v2],[r0,r1,r2],2)
@@ -157,7 +165,8 @@ class dynamic(avl):
 
 	def print(self):
 		self.optimize_roc()
-		text = "Climb Rate: {} {} / {}".format(self.roc,self.lenth,self.time)
+		text = "Climb Rate: {} {} / {}".format(self.roc,self.length,self.time)
+		print(text)
 
 class imperial_dynamic(dynamic):
 	rho = 0.0023769

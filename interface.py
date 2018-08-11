@@ -251,6 +251,9 @@ SURFACE
 
 	@property
 	def area(self):
+		"""
+		return the planform area
+		"""
 		a = 0
 		for n in range(1,len(self.sections)):
 			a += 0.5*abs(self.sections[n].position[1] - self.sections[n-1].position[1])*(self.sections[n].chord + self.sections[n-1].chord)
@@ -274,16 +277,22 @@ SURFACE
 	def ar(self):
 		return self.span/self.mean_chord
 	@property
-	def cd0(self):
+	def integrated_cd0(self):
+		"""
+		return the drag that the surface will generate
+		per unit dynamic pressure, in other words, the
+		drag coefficient integrated over the area
+		"""
 		c = 0
 		for n in range(1,len(self.sections)):
 			c0 = self.sections[n].cd0
 			c1 = self.sections[n-1].cd0
 			chordwise = 0.5*(self.sections[n].chord*c0 + self.sections[n-1].chord*c1)
-			c += abs(self.sections[n].position[1] - self.sections[n-1].position[1]) * chordwise
+			spanwise = np.array(self.sections[n].position) - np.array(self.sections[n-1].position)
+			c += math.sqrt(spanwise[0]**2 + spanwise[1]**2 + spanwise[2]**2) * chordwise
 		if self.yduplicate != "":
 			c *= 2
-		return c/self.area
+		return c
 
 	def from_text(text):
 		text = re.sub('\n+','\n',text)
