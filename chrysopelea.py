@@ -20,6 +20,7 @@ class dynamic(avl):
 	motor = motor()
 	alpha_max = 10
 	rolling_mu = 0
+	stall_safety = 1.1
 
 	# freestream conditions
 	speed = 1
@@ -29,7 +30,9 @@ class dynamic(avl):
 
 	# numerical computation parameters
 	dv = 1
+	dt = 0.005
 	vtol = 1
+	roll_max = None
 
 	# unit names for printing
 	length = "m"
@@ -97,7 +100,7 @@ class dynamic(avl):
 		plt.plot(vs,rate,label="rate")
 		plt.legend()
 
-	def optimize_roc(self,plot=False):
+	def optimize_roc(self,fast=False,plot=False):
 		"""
 		Note to programmer: speed this up by only set_attitude 
 		once per loop execution
@@ -108,16 +111,27 @@ class dynamic(avl):
 		self.set_attitude(alpha=0)
 		while abs(self.speed - v0) > self.vtol:
 			self.set_attitude(cl=self.climb_cl)
-			slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
-			r0 = slope*self.speed
+			if fast:
+				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+				r0 = slope*self.speed
+			else:
+				r0 = self.roc
 			v0 = self.speed
 			self.speed += self.dv
-			slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
-			r1 = slope*self.speed
+			if fast:
+				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+				r1 = slope*self.speed
+			else:
+				self.set_attitude(cl=self.climb_cl)
+				r1 = self.roc
 			v1 = self.speed
 			self.speed += self.dv
-			slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
-			r2 = slope*self.speed
+			if fast:
+				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+				r2 = slope*self.speed
+			else:
+				self.set_attitude(cl=self.climb_cl)
+				r2 = self.roc
 			v2 = self.speed
 			coefs = np.polyfit([v0,v1,v2],[r0,r1,r2],2)
 			if plot:
@@ -131,22 +145,64 @@ class dynamic(avl):
 		if plot:
 			plt.scatter(vs+[self.speed],rates+[self.roc])
 
+	def climb_rate_analytic(self,iterations=1):
+		self.speed = self.motor.max
+		for n in range(iterations):
+			self.set_attitude()
+			P = self.thrust*self.speed
+			e = self.e
+			v = math.sqrt(2*self.weight/(self.rho*self.area*math.sqrt(math.pi*self.ar*e*3*self.cd0)))
+			self.speed = v
+		return P/self.weight - v*(0.5*self.rho*v**2*self.area*self.cd0/self.weight + self.weight*2/(self.area*self.rho*v**2*math.pi*self.ar*e))
+
+	def set_attitude(self,cl=None,alpha=None,load_factor=1):
+		if cl==None and (alpha==None):
+			self.set_attitude(cl = math.sqrt(2*self.weight*load_factor/(self.rho*self.area*self.speed**2)))
+		else:
+			super().set_attitude(cl=cl,alpha=alpha)
+
 	@property
 	def v_stall(self):
 		self.set_attitude(alpha=self.alpha_max)
 		return math.sqrt(2*self.weight/(self.rho*self.cl*self.area))
 
-	def takeoff_distance(self,safety_factor=1.2,alpha=0,motor_decriment=0,lame=False):
+	def takeoff_distance_analytic(self,alpha=0,lame=False):
 		"""
 		Normal mode tested against www.dept.aoe.vt.edu/~lutze/AOE3104/takeoff&landing.pdf, p6
 		"""
-		vto = self.v_stall*safety_factor
+		vto = self.v_stall*self.stall_safety
 		self.set_attitude(alpha=alpha)
+		self.speed = vto/math.sqrt(2)
+		t = self.thrust
 		if lame:
-			return 0.5*vto**2/(self.g* (self.motor.static_thrust/self.weight - self.rolling_mu - 0.25*self.rho*vto**2 /self.weight*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl)) )
-		a = self.g*(self.motor.static_thrust/self.weight-self.rolling_mu)
-		b = self.g/self.weight*(0.5*self.rho*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl) + motor_decriment)
-		return 0.5/b*math.log(a/(a - b*vto**2))
+			return 0.5*vto**2/(self.g* (t/self.weight - self.rolling_mu - 0.25*self.rho*vto**2 /self.weight*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl)) )
+		a = self.g*(t/self.weight-self.rolling_mu)
+		b = self.g/self.weight*(0.5*self.rho*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl))
+		try:
+			return 0.5/b*math.log(a/(a - b*vto**2))
+		except ValueError:
+			return "Computation Failed -- probably insufficient thrust"
+
+	def takeoff_distance(self,cl=None,alpha=0):
+		v_to = self.v_stall*self.stall_safety
+		if cl != None:
+			self.set_attitude(cl=cl)
+		elif alpha != None:
+			self.set_attitude(alpha=alpha)
+		self.speed = v_to
+		if self.weight*self.rolling_mu > self.motor.static_thrust:
+			return "Aircraft cannot roll -- insufficient thrust"
+		if self.weight*(self.rolling_mu) + 0.5*self.rho*self.area*self.speed**2 * (self.cd0 + self.cdi - self.rolling_mu*self.cl) >= self.thrust:
+			return "Aircraft cannot takeoff -- insufficient thrust at takeoff speed"
+		self.speed = 0
+		roll = 0
+		while self.speed < v_to:
+			roll += self.speed*self.dt
+			force = (self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl) - self.rolling_mu*self.weight)
+			self.speed += force*self.g/self.weight*self.dt
+			if (self.roll_max != None) and (roll > self.roll_max):
+				return "Aircraft cannot takoff within {}".format(self.roll_max)
+		return roll
 
 	@property
 	def v_max(self,plot=False):
@@ -185,7 +241,9 @@ class dynamic(avl):
 	def print(self):
 		print("Stall Speed:  {} {} / {}".format(self.v_stall,self.length,self.time))
 		print("Top Speed:  {} {} / {}".format(self.v_max,self.length,self.time))
+		print("Takeoff Roll Distance Analytic:  {} {}".format(self.takeoff_distance_analytic(),self.length))
 		print("Takeoff Roll Distance:  {} {}".format(self.takeoff_distance(),self.length))
+		print("Climb Rate Analytic: {} {} / {}".format(self.climb_rate_analytic(iterations=3),self.length,self.time))
 		self.optimize_roc()
 		print("Climb Rate:  {} {} / {}".format(self.roc,self.length,self.time))
 
