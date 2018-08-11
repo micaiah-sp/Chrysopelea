@@ -83,7 +83,6 @@ Advanced
 		self.surfaces[surf.name] = surf
 
 	def execute(self,operations):
-		print('AVL Executed!')
 		input = open('chrysopelea.avl','w')
 		input.write(str(self))
 		input.close()
@@ -95,7 +94,8 @@ quit
 
 """.format(operations))
 		cmd.close()
-		subprocess.run(avl_path + "<chrysopelea.ain>chrysopelea.aot",shell=True)
+		with open("chrysopelea_subproc_out","w") as subproc_out:
+			subprocess.run(avl_path + "<chrysopelea.ain>chrysopelea.aot",shell=True,stderr=subproc_out)
 
 		out = open("chrysopelea.aot")
 		out_text = out.read()
@@ -377,7 +377,8 @@ quit
 """.format(self.load_cmd,self.re,oper)
 		input.write(cmd)
 		input.close()
-		subprocess.run("xfoil<chrysopelea.xin>chrysopelea.xot",shell=True)
+		with open("chrysopelea_subproc_out","w") as subproc_out:
+			subprocess.run("xfoil<chrysopelea.xin>chrysopelea.xot",shell=True,stderr=subproc_out)
 
 		file = open("chrysopelea_xfoil.dat")
 		text = file.read()
