@@ -290,7 +290,7 @@ SURFACE
 			chordwise = 0.5*(self.sections[n].chord*c0 + self.sections[n-1].chord*c1)
 			spanwise = np.array(self.sections[n].position) - np.array(self.sections[n-1].position)
 			c += math.sqrt(spanwise[0]**2 + spanwise[1]**2 + spanwise[2]**2) * chordwise
-		if self.yduplicate != "":
+		if self.yduplicate != None:
 			c *= 2
 		return c
 

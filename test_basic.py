@@ -1,18 +1,15 @@
 from chrysopelea import *
 
-s = 'uniform'
-#s = 'sin'
-
-for n in [100*m for m in [20]]:
-	print("hershey bar")
-	line = LiftingLine(n=n,chord='uniform',space=s)
-	line.solve(2*math.pi/180)
-	line.plot()
-	line.print()
-	"""
-	print("elipse")
-	line = LiftingLine(n=n,chord='elipse',space=s)
-	line.solve(2*math.pi/180)
-	line.plot()
-	line.print()
-	"""
+s = Surface('Wing')
+s.add_naca((0,0,0),1)
+s.add_naca((0,1,0),1)
+print(s.integrated_cd0)
+t = Surface('v')
+t.add_naca((0,0,0),1)
+t.add_naca((0,0,1),1)
+t.yduplicate = None
+print(t.integrated_cd0)
+a = dynamic()
+a.add_surface(s)
+a.add_surface(t)
+print(a.cd0)
