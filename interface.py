@@ -397,11 +397,19 @@ class xfoil(object):
 		afile = re.split('AFILE\n*\t*',text)
 		afile = afile[1]
 		afile = re.split('\n|\t',afile)[0]
-		return xfoil(file=afile,position=coord,chord=chord)
+		sec = xfoil(file=afile,position=coord,chord=chord)
+		sec.add_control_from_text(text)
+		return sec
 
 	def add_control(self,control):
 		control.parent=self
 		self.controls.append(control)
+
+	def add_control_from_text(self,text):
+		con = text.split('CONTROL')
+		if len(con) > 1:
+			con = Control.from_text(con[1])
+			self.add_control(con)
 
 	@property
 	def load_cmd(self):
@@ -484,7 +492,9 @@ class naca(xfoil):
 		desig = re.split('NACA\n*\t*',text)
 		assert len(desig) > 1
 		desig = re.split('\n|\t| ',desig[1])[0]
-		return naca(desig=desig,position=coord,chord=chord)
+		n = naca(desig=desig,position=coord,chord=chord)
+		n.add_control_from_text(text)
+		return n
 
 	@property
 	def load_cmd(self):
@@ -513,6 +523,11 @@ class Control:
 		self.xhinge=0.5
 		self.xyzhvec=xyzhvec
 		self.signdup=signdup
+
+	def from_text(text):
+		text = re.sub('#.*','',text)
+		entries = [e for e in re.split('\n|\t| ',text) if e != '']
+		return Control(entries[0],gain=entries[1],xhinge=entries[2],xyzhvec=(entries[3],entries[4],entries[5]),signdup=entries[6])
 
 	def __str__(self):
 		return """
