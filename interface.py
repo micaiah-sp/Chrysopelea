@@ -147,11 +147,28 @@ k"""
 		if surname in self.surfaces:
 			return self.surfaces.pop(surname)
 
+	def control_variables(self):
+		s = str(self)
+		cs = s.split('CONTROL')[1:]
+		controls = {}
+		n = 1
+		for c in cs:
+			c = re.sub('#.*','',c)
+			c = [cc for cc in re.split('\n|\t| ',c) if cc != ''][0]
+			if c not in controls:
+				controls[c] = 'd{}'.format(n)
+				n += 1
+		return controls
+
 	def set(self,var,cons):
 		self.constraints[var] = cons
 		self.output=None
 
 	def set_attitude(self,cl=None,alpha=0):
+		"""
+		constrain alpha either directly or with cl.
+		Included primarily for backwards compatability.
+		"""
 		if cl != None:
 			self.set('a','c {}'.format(cl))
 		elif alpha != None:
@@ -342,17 +359,12 @@ SURFACE
 		else:
 			delta = (0,0,0)
 		for sect in sects:
-			entries = re.split('\n|\t',sect)
-			entries = [e for e in entries if e != '']
-			coord = (float(entries[0])+delta[0],float(entries[1])+delta[1],float(entries[2])+delta[2])
-			chord = float(entries[3])
-			afile = re.split('AFILE\n*\t*',sect)
-			if len(afile) > 1:
-				afile = afile[1]
-				afile = re.split('\n|\t',afile)[0]
-				s.add_afile(coord,chord,afile=afile)
-			else:
-				s.add_naca(coord,chord)
+			try:
+				section = naca.from_text(sect)
+			except AssertionError:
+				section = xfoil.from_text(sect)
+			section.translate(delta)
+			s.add_section(section)
 		return s
 
 	def scale(self, factor):
@@ -376,6 +388,16 @@ class xfoil(object):
 		self.chord = chord
 		self.sspace = sspace
 		self.nspan = nspan
+
+	def from_text(text):
+		entries = re.split('\n|\t',text)
+		entries = [e for e in entries if e != '']
+		coord = (float(entries[0]),float(entries[1]),float(entries[2]))
+		chord = float(entries[3])
+		afile = re.split('AFILE\n*\t*',text)
+		afile = afile[1]
+		afile = re.split('\n|\t',afile)[0]
+		return xfoil(file=afile,position=coord,chord=chord)
 
 	def add_control(self,control):
 		control.parent=self
@@ -441,6 +463,9 @@ AFILE
 			s += str(con)
 		return s
 
+	def translate(self,xyz):
+		self.position = (self.position[0] + xyz[0], self.position[1] + xyz[1],self.position[2] + xyz[2])
+
 class naca(xfoil):
 
 	def __init__(self, desig="0014",position=[0,0,0],chord=1,sspace=1,nspan=10):
@@ -450,6 +475,16 @@ class naca(xfoil):
 		self.chord = chord
 		self.sspace = sspace
 		self.nspan = nspan
+
+	def from_text(text):
+		entries = re.split('\n|\t',text)
+		entries = [e for e in entries if e != '']
+		coord = (float(entries[0]),float(entries[1]),float(entries[2]))
+		chord = float(entries[3])
+		desig = re.split('NACA\n*\t*',text)
+		assert len(desig) > 1
+		desig = re.split('\n|\t| ',desig[1])[0]
+		return naca(desig=desig,position=coord,chord=chord)
 
 	@property
 	def load_cmd(self):
