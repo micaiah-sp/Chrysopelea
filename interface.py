@@ -15,6 +15,30 @@ avl_path = "/home/micaiah/Avl/bin/avl"
 class avl(object):
 	"""
 	class for performing AVL simulations
+
+	Trim Parameter Reference:
+  A lpha
+  B eta
+  R oll  rate
+  P itch rate
+  Y aw   rate
+  D<n>  <control surface>
+
+	Constraint reference:
+       A    alpha       =   0.000    
+       B    beta        =   0.000    
+       R    pb/2V       =   0.000    
+       P    qc/2V       =   0.000    
+       Y    rb/2V       =   0.000    
+       C    CL          =   0.000    
+       S    CY          =   0.000    
+       RM   Cl roll mom =   0.000    
+       PM   Cm pitchmom =   0.000    
+       YM   Cn yaw  mom =   0.000    
+       D<n> <control>   =   0.000
+
+	(use lowercase)
+
 	"""
 	text = ""
 	output = None
@@ -30,6 +54,7 @@ class avl(object):
 			stexts = re.split('SURFACE\n',text)[1:]
 			for stext in stexts:
 				self.add_surface(Surface.from_text(stext))
+		self.constraints = {}
 
 	def __repr__(self):
 		return "AVL interface object with surfaces {}".format(self.surfaces)
@@ -82,11 +107,18 @@ Advanced
 		surf.parent = self
 		self.surfaces[surf.name] = surf
 
-	def execute(self,operations):
+	def execute(self,operations=None):
 		input = open('chrysopelea.avl','w')
 		input.write(str(self))
 		input.close()
 		cmd = open('chrysopelea.ain','w')
+		if operations == None:
+			operations = ""
+			cons = list(self.constraints)
+			for c in cons:
+				operations += "\n{}\n{}".format(c,self.constraints[c])
+				self.constraints.pop(c)
+			operations += '\nx\n'
 		cmd.write("""
 load chrysopelea.avl
 oper{}
@@ -108,26 +140,26 @@ quit
 		operations = """
 g
 k"""
-		return self.execute(operations)
+		self.execute(operations)
+		self.output = None
 
 	def pop(self, surname):
 		if surname in self.surfaces:
 			return self.surfaces.pop(surname)
 
+	def set(self,var,cons):
+		self.constraints[var] = cons
+		self.output=None
+
 	def set_attitude(self,cl=None,alpha=0):
 		if cl != None:
-			cmd = 'c {}'.format(cl)
+			self.set('a','c {}'.format(cl))
 		elif alpha != None:
-			cmd = 'a {}'.format(alpha)
-		ops = """
-a
-{}
-x""".format(cmd)
-		self.execute(ops)
+			self.set('a','a {}'.format(alpha))
 
 	def get_output(self,var):
 		if not self.output:
-			self.set_attitude()
+			self.execute()
 		text = self.output.split('Vortex Lattice Output -- Total Forces')[1]
 		text = re.split("{} *= *".format(var),text)[1].split(' ')[0]
 		return float(text)
@@ -220,11 +252,13 @@ class Surface(object):
 
 	def add_afile(self,xyz, chord, afile='sd7062.dat',nspan=10):
 		sec = xfoil(file=afile,position=xyz,chord=chord,nspan=nspan)
-		sec.parent = self
-		self.sections.append(sec)
+		self.add_section(sec)
 
 	def add_naca(self,xyz,chord,desig="0014",nspan=10):
 		sec = naca(position=xyz,chord=chord,desig=desig,nspan=nspan)
+		self.add_section(sec)
+
+	def add_section(self, sec):
 		sec.parent=self
 		self.sections.append(sec)
 
@@ -336,11 +370,16 @@ class xfoil(object):
 	re = 450000
 
 	def __init__(self, file = "sd7062",position=[0,0,0],chord=1,sspace=1,nspan=10):
+		self.controls = []
 		self.file = file
 		self.position=position
 		self.chord = chord
 		self.sspace = sspace
 		self.nspan = nspan
+
+	def add_control(self,control):
+		control.parent=self
+		self.controls.append(control)
 
 	@property
 	def load_cmd(self):
@@ -391,17 +430,21 @@ quit
 		return output
 
 	def __str__(self):
-		return """
+		s = """
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
 {} 	 	{} 	 	{} 	 	{} 	 	0 	 	{} 	 	{} 
 AFILE
 {}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.file)
+		for con in self.controls:
+			s += str(con)
+		return s
 
 class naca(xfoil):
 
 	def __init__(self, desig="0014",position=[0,0,0],chord=1,sspace=1,nspan=10):
+		self.controls = []
 		self.file = desig
 		self.position=position
 		self.chord = chord
@@ -413,12 +456,32 @@ class naca(xfoil):
 		return "naca {}".format(self.file)
 
 	def __str__(self):
-		return """
+		s = """
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
 {} 	 	{} 	 	{} 	 	{} 	 	0 	 	{} 	 	{} 
 NACA
 {}""".format(self.position[0],self.position[1],self.position[2],self.chord,self.nspan,self.sspace,self.file)
+		for con in self.controls:
+			s += str(con)
+		return s
 
+
+#################################### Control Surface Class ####################################
+
+class Control:
+
+	def __init__(self,name,gain=1,xhinge=0.5,xyzhvec=(0,0,0),signdup=1):
+		self.name=name
+		self.gain=gain
+		self.xhinge=0.5
+		self.xyzhvec=xyzhvec
+		self.signdup=signdup
+
+	def __str__(self):
+		return """
+CONTROL
+#NAME 		GAIN		XHINGE		XHVEC		YHVEC		ZHVEC		SIGNDUP
+{} 		{} 		{} 		{} 		{} 		{} 		{} """.format(self.name,self.gain,self.xhinge,self.xyzhvec[0],self.xyzhvec[1],self.xyzhvec[2],self.signdup) # Note whitespace after parameter values
 
