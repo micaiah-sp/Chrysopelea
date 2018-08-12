@@ -43,6 +43,10 @@ class avl(object):
 	text = ""
 	output = None
 	pitch_trim = None
+	mach = 0
+	xyzsym = (0,0,0)
+	xyzref = (0,0,0)
+	
 
 	def __init__(self,file=None):
 		self.surfaces = {}
@@ -52,7 +56,9 @@ class avl(object):
 			file_obj.close()
 
 			text = re.sub('#.*','',text)
-			stexts = re.split('SURFACE\n',text)[1:]
+			stexts = re.split('SURFACE\n',text)
+			header = stexts.pop(0)
+			
 			for stext in stexts:
 				self.add_surface(Surface.from_text(stext))
 		self.constraints = {}
@@ -61,17 +67,20 @@ class avl(object):
 		return "AVL interface object with surfaces {}".format(self.surfaces)
 
 	def __str__(self):
+		sym = "{} 		{} 		{}".format(self.xyzsym[0],self.xyzsym[1],self.xyzsym[2])
+		area = "{} 		{} 		{}".format(self.area,self.mean_chord,self.span)
+		ref = "{} 		{} 		{}".format(self.xyzref[0],self.xyzref[1],self.xyzref[2])
 		text = """
 Advanced
 #MACH
-0
+{}
 #IYsym		IZsym		Zsym		Vehicle Symmetry
-0 	0 	0
+{}
 #Sref		Cref		Bref		Reference Area and Lengths
-{}		{}		{}
+{}
 #Xref	 	Yref	 	Zref	 	Center of Gravity Location
-0 		0	 	0
-""".format(self.area,self.mean_chord,self.span)
+{}
+""".format(self.mach,sym,area,ref)
 		for s in list(self.surfaces):
 			text += str(self.surfaces[s])
 		return text
@@ -200,6 +209,7 @@ k"""
 		return self.get_output('e')
 
 	def scale(self, factor):
+		self.xyzref = (self.xyzref[0]*factor,self.xyzref[1]*factor,self.xyzref[2]*factor)
 		for s in self.surfaces.keys():
 			self.surfaces[s].scale(factor)
 
