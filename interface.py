@@ -42,6 +42,7 @@ class avl(object):
 	"""
 	text = ""
 	output = None
+	pitch_trim = None
 
 	def __init__(self,file=None):
 		self.surfaces = {}
@@ -173,6 +174,9 @@ k"""
 			self.set('a','c {}'.format(cl))
 		elif alpha != None:
 			self.set('a','a {}'.format(alpha))
+		if self.pitch_trim != None:
+			d = self.control_variables()[self.pitch_trim]
+			self.set(d,'pm 0')
 
 	def get_output(self,var):
 		if not self.output:

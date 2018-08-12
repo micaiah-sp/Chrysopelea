@@ -170,6 +170,8 @@ class dynamic(avl):
 		"""
 		Normal mode tested against www.dept.aoe.vt.edu/~lutze/AOE3104/takeoff&landing.pdf, p6
 		"""
+		e = self.pitch_trim
+		self.pitch_trim = None
 		vto = self.v_stall*self.stall_safety
 		self.set_attitude(alpha=alpha)
 		self.speed = vto/math.sqrt(2)
@@ -178,6 +180,7 @@ class dynamic(avl):
 			return 0.5*vto**2/(self.g* (t/self.weight - self.rolling_mu - 0.25*self.rho*vto**2 /self.weight*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl)) )
 		a = self.g*(t/self.weight-self.rolling_mu)
 		b = self.g/self.weight*(0.5*self.rho*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl))
+		self.pitch_trim = e
 		try:
 			return 0.5/b*math.log(a/(a - b*vto**2))
 		except ValueError:
@@ -185,6 +188,8 @@ class dynamic(avl):
 
 	def takeoff_distance(self,cl=None,alpha=0):
 		v_to = self.v_stall*self.stall_safety
+		e = self.pitch_trim
+		self.pitch_trim = None
 		if cl != None:
 			self.set_attitude(cl=cl)
 		elif alpha != None:
@@ -202,6 +207,7 @@ class dynamic(avl):
 			self.speed += force*self.g/self.weight*self.dt
 			if (self.roll_max != None) and (roll > self.roll_max):
 				return "Aircraft cannot takoff within {}".format(self.roll_max)
+		self.pitch_trim = e
 		return roll
 
 	@property
