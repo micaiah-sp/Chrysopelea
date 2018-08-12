@@ -58,7 +58,10 @@ class avl(object):
 			text = re.sub('#.*','',text)
 			stexts = re.split('SURFACE\n',text)
 			header = stexts.pop(0)
-			
+			header = [float(e) for e in re.split('\n|\t| ',header)[1:] if e != '']
+			self.mach = header[0]
+			self.xyzsym = (int(header[1]),int(header[2]),int(header[3]))
+			self.xyzref = (header[7],header[8],header[9])
 			for stext in stexts:
 				self.add_surface(Surface.from_text(stext))
 		self.constraints = {}
