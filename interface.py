@@ -42,6 +42,7 @@ class avl(object):
 	"""
 	text = ""
 	output = None
+	distribution = None
 	pitch_trim = None
 	mach = 0
 	xyzsym = (0,0,0)
@@ -66,12 +67,16 @@ class avl(object):
 				self.add_surface(Surface.from_text(stext))
 		self.constraints = {}
 
+	@property
+	def cref(self):
+		return self.mean_chord
+
 	def __repr__(self):
 		return "AVL interface object with surfaces {}".format(self.surfaces)
 
 	def __str__(self):
 		sym = "{} 		{} 		{}".format(self.xyzsym[0],self.xyzsym[1],self.xyzsym[2])
-		area = "{} 		{} 		{}".format(self.area,self.mean_chord,self.span)
+		area = "{} 		{} 		{}".format(self.area,self.cref,self.span)
 		ref = "{} 		{} 		{}".format(self.xyzref[0],self.xyzref[1],self.xyzref[2])
 		text = """
 Advanced
@@ -120,24 +125,33 @@ Advanced
 		surf.parent = self
 		self.surfaces[surf.name] = surf
 
-	def execute(self,operations=None):
+	def operations_from_constraints(self):
+		operations = ""
+		cons = list(self.constraints)
+		for c in cons:
+			operations += "\n{}\n{}".format(c,self.constraints[c])
+			self.constraints.pop(c)
+		return operations
+
+	def execute(self,operations=None,distribution=True):
 		input = open('chrysopelea.avl','w')
 		input.write(str(self))
 		input.close()
 		cmd = open('chrysopelea.ain','w')
 		if operations == None:
-			operations = ""
-			cons = list(self.constraints)
-			for c in cons:
-				operations += "\n{}\n{}".format(c,self.constraints[c])
-				self.constraints.pop(c)
-			operations += '\nx\n'
-		cmd.write("""
+			operations = self.operations_from_constraints()
+			operations += '\nx'
+			if distribution:
+				operations += '\nvm\nchrysopelea.dis'
+		operations += '\n'
+		cmd_text = """
 load chrysopelea.avl
 oper{}
 quit
 
-""".format(operations))
+""".format(operations)
+		print(cmd_text)
+		cmd.write(cmd_text)
 		cmd.close()
 		with open("chrysopelea_subproc_out","w") as subproc_out:
 			subprocess.run(avl_path + "<chrysopelea.ain>chrysopelea.aot",shell=True,stderr=subproc_out)
@@ -146,8 +160,17 @@ quit
 		out_text = out.read()
 		out.close()
 
+		if distribution:
+			out = open("chrysopelea.dis")
+			self.distribution = out.read()
+			out.close()
+
+
 		self.output = out_text
 		return out_text
+
+	def clear_constraints(self):
+		self.constraints = {}
 
 	def draw(self):
 		operations = """
@@ -176,6 +199,7 @@ k"""
 	def set(self,var,cons):
 		self.constraints[var] = cons
 		self.output=None
+		self.distribution = None
 
 	def set_attitude(self,cl=None,alpha=0):
 		"""
@@ -190,12 +214,56 @@ k"""
 			d = self.control_variables()[self.pitch_trim]
 			self.set(d,'pm 0')
 
+	def stability(self):
+		print("stab")
+		operations = self.operations_from_constraints()
+		operations += "\nX\nST"
+		self.execute(operations)
+
 	def get_output(self,var):
 		if not self.output:
 			self.execute()
-		text = self.output.split('Vortex Lattice Output -- Total Forces')[1]
+		text = self.output.split('Vortex Lattice Output -- Total Forces')[-1]
 		text = re.split("{} *= *".format(var),text)[1].split(' ')[0]
 		return float(text)
+
+	def get_stab(self,var):
+		try:
+			return self.get_output(var)
+		except:
+			self.stability()
+			return self.get_output(var)
+
+	def get_distribution(self,surf):
+		if not self.distribution:
+			self.execute(distribution=True)
+		text = self.distribution.split(surf)[1]
+		text = re.split('\n *\n',text)[0]
+		text = '\n'.join(text.split('\n')[3:])
+		text = re.sub(' +',',',text)
+		text = re.sub('\n,','\n',text)
+		text = re.sub('(^,)|(,$)','',text)
+		f = io.StringIO(text)
+		return pd.read_csv(f)
+
+	def plot_bending_moment(self,surf):
+		dist = self.get_distribution(surf)
+		plt.plot(dist.iloc[:,0],dist.iloc[:,1])
+		plt.xlabel('Semispan Location')
+		plt.ylabel('Moment per (unit span * unit area * unit dynamic pressure)')
+		plt.title('Bending Moment for alpha = {}'.format(self.alpha))
+
+	@property
+	def cma(self):
+		return self.get_stab('Cma')
+
+	@property
+	def cla(self):
+		return self.get_stab('CLa')
+
+	@property
+	def xac(self):
+		return -self.cma*self.cref/self.cla
 
 	@property
 	def cl(self):

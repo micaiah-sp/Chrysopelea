@@ -8,8 +8,12 @@ class motor(object):
 	static_thrust = 1
 	thrust_at_max = 1
 
+	"""
 	def thrust(self,v):
 		return self.static_thrust + (self.thrust_at_max-self.static_thrust)*(v-self.static)/self.max
+	"""
+	def thrust(self,v):
+		return self.thrust_at_max*self.max/v
 
 ############### flight dynamics class ######################
 
@@ -153,6 +157,7 @@ class dynamic(avl):
 			e = self.e
 			v = math.sqrt(2*self.weight/(self.rho*self.area*math.sqrt(math.pi*self.ar*e*3*self.cd0)))
 			self.speed = v
+			print(self.speed,self.alpha,self.slope)
 		return P/self.weight - v*(0.5*self.rho*v**2*self.area*self.cd0/self.weight + self.weight*2/(self.area*self.rho*v**2*math.pi*self.ar*e))
 
 	def set_attitude(self,cl=None,alpha=None,load_factor=1):
@@ -246,11 +251,14 @@ class dynamic(avl):
 
 	def print(self):
 		print("Stall Speed:  {} {} / {}".format(self.v_stall,self.length,self.time))
+		"""
 		print("Top Speed:  {} {} / {}".format(self.v_max,self.length,self.time))
 		print("Takeoff Roll Distance Analytic:  {} {}".format(self.takeoff_distance_analytic(),self.length))
 		print("Takeoff Roll Distance:  {} {}".format(self.takeoff_distance(),self.length))
+		"""
 		print("Climb Rate Analytic: {} {} / {}".format(self.climb_rate_analytic(iterations=3),self.length,self.time))
 		self.optimize_roc()
+		print(self.speed,self.alpha,self.slope)
 		print("Climb Rate:  {} {} / {}".format(self.roc,self.length,self.time))
 
 class imperial_dynamic(dynamic):
