@@ -2,7 +2,12 @@
 load chrysopelea.avl
 oper
 a
-a 0
+a 10
+d1
+pm 0
 x
+vm
+chrysopelea.dis
+
 quit
 

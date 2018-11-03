@@ -3,90 +3,49 @@ Advanced
 #MACH
 0
 #IYsym		IZsym		Zsym		Vehicle Symmetry
-0 	0 	0
+0 		0 		0
 #Sref		Cref		Bref		Reference Area and Lengths
-2802.5		19.461805555555557		144.0
+257.2050807568877 		8.573502691896257 		30.0
 #Xref	 	Yref	 	Zref	 	Center of Gravity Location
-0 		0	 	0
+11.37747039155167 		0 		0
 
 #==============================================
 SURFACE
 Wing
-#Nchord		Cspace		Nspan		Sspace
-10 		1 		20 		1
+#Nchord		Cspace 
+20 		1 
 YDUPLICATE
 0
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
--9.5	 	0.0	 	0.0	 	35.0	 	0	 	0	 	0
-AFILE
-nlf0215f-il.dat
+0 	 	0 	 	0 	 	19.32050807568877 	 	0 	 	10 	 	1 
+NACA
+0014
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
--9.5	 	4.5	 	0.0	 	35.0	 	0	 	0	 	0
-AFILE
-nlf0215f-il.dat
+1.7320508075688772 	 	1 	 	0 	 	17.588457268119893 	 	0 	 	10 	 	1 
+NACA
+0014
+CONTROL
+#NAME 		GAIN		XHINGE		XHVEC		YHVEC		ZHVEC		SIGNDUP
+elevon 		1 		0.11371093948217488 		0 		0 		0 		1 
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	13.5	 	2.0	 	18.3	 	0	 	0	 	0
-AFILE
-sd7062.dat
+12.52050807568877 	 	7.228718707889795 	 	0 	 	6.8 	 	0 	 	10 	 	1 
+NACA
+0014
+CONTROL
+#NAME 		GAIN		XHINGE		XHVEC		YHVEC		ZHVEC		SIGNDUP
+elevon 		1 		0.29411764705882354 		0 		0 		0 		1 
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	41.0	 	2.0	 	18.3	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	72.0	 	2.0	 	14.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#==============================================
-SURFACE
-VerTail
-#Nchord		Cspace		Nspan		Sspace
-10 		1 		20 		1
-YDUPLICATE
-0
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	13.5	 	0.0	 	5.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.833	 	13.5	 	2.5	 	9.16	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-4.0	 	13.5	 	12.0	 	6.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#==============================================
-SURFACE
-HTail
-#Nchord		Cspace		Nspan		Sspace
-10 		1 		20 		1
-YDUPLICATE
-0
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	0.0	 	0.0	 	10.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
-#----------------------------------------------
-SECTION
-#Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0.0	 	14.0	 	0.0	 	10.0	 	0	 	0	 	0
-AFILE
-sd7062.dat
+17.32050807568877 	 	15.0 	 	0 	 	2 	 	0 	 	10 	 	1 
+NACA
+0014
+CONTROL
+#NAME 		GAIN		XHINGE		XHVEC		YHVEC		ZHVEC		SIGNDUP
+elevon 		1 		1 		0 		0 		0 		1 
