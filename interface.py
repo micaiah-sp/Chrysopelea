@@ -274,6 +274,11 @@ k"""
 	@property
 	def cdi(self):
 		return self.get_output('CDff')
+
+	@property
+	def cm(self):
+		return self.get_output('Cmtot')
+
 	@property
 	def alpha(self):
 		return self.get_output('Alpha')
