@@ -40,10 +40,10 @@
 
     0 Bodies
     2 Solid surfaces
-   60 Strips
- 1200 Vortices
+   20 Strips
+  100 Vortices
 
-    1 Control variables
+    0 Control variables
     0 Design parameters
 
  Initializing run cases...
@@ -59,107 +59,6 @@
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
   Y aw   rate   ->  rb/2V       =   0.000         
-  D1  elevon    ->  elevon      =   0.000         
-  ------------      ------------------------
-
-  C1  set level or banked  horizontal flight constraints
-  C2  set steady pitch rate (looping) flight constraints
-  M odify parameters                                    
-
- "#" select  run case          L ist defined run cases   
-  +  add new run case          S ave run cases to file   
-  -  delete  run case          F etch run cases from file
-  N ame current run case       W rite forces to file     
-
- eX ecute run case             I nitialize variables     
-
-  G eometry plot               T refftz Plane plot       
-
-  ST  stability derivatives    FT  total   forces        
-  SB  body-axis derivatives    FN  surface forces        
-  RE  reference quantities     FS  strip   forces        
-  DE  design changes           FE  element forces        
-  O ptions                     FB  body forces           
-                               HM  hinge moments         
-                               VM  strip shear,moment    
-
- .OPER (case 1/1)   c>  
-       constraint            value     
-      - - - - - - - - - - - - - - - - -
-   ->  A    alpha       =   0.000    
-       B    beta        =   0.000    
-       R    pb/2V       =   0.000    
-       P    qc/2V       =   0.000    
-       Y    rb/2V       =   0.000    
-       C    CL          =   0.000    
-       S    CY          =   0.000    
-       RM   Cl roll mom =   0.000    
-       PM   Cm pitchmom =   0.000    
-       YM   Cn yaw  mom =   0.000    
-       D1   elevon      =   0.000    
-
-      Select new  constraint,value  for alpha          c>  
- Operation of run case 1/1:   -unnamed-                              
- ==========================================================
-
-  variable          constraint              
-  ------------      ------------------------
-  A lpha        ->  alpha       =   10.00         
-  B eta         ->  beta        =   0.000         
-  R oll  rate   ->  pb/2V       =   0.000         
-  P itch rate   ->  qc/2V       =   0.000         
-  Y aw   rate   ->  rb/2V       =   0.000         
-  D1  elevon    ->  elevon      =   0.000         
-  ------------      ------------------------
-
-  C1  set level or banked  horizontal flight constraints
-  C2  set steady pitch rate (looping) flight constraints
-  M odify parameters                                    
-
- "#" select  run case          L ist defined run cases   
-  +  add new run case          S ave run cases to file   
-  -  delete  run case          F etch run cases from file
-  N ame current run case       W rite forces to file     
-
- eX ecute run case             I nitialize variables     
-
-  G eometry plot               T refftz Plane plot       
-
-  ST  stability derivatives    FT  total   forces        
-  SB  body-axis derivatives    FN  surface forces        
-  RE  reference quantities     FS  strip   forces        
-  DE  design changes           FE  element forces        
-  O ptions                     FB  body forces           
-                               HM  hinge moments         
-                               VM  strip shear,moment    
-
- .OPER (case 1/1)   c>  
-       constraint            value     
-      - - - - - - - - - - - - - - - - -
-       A    alpha       =   10.00    
-       B    beta        =   0.000    
-       R    pb/2V       =   0.000    
-       P    qc/2V       =   0.000    
-       Y    rb/2V       =   0.000    
-       C    CL          =   0.000    
-       S    CY          =   0.000    
-       RM   Cl roll mom =   0.000    
-       PM   Cm pitchmom =   0.000    
-       YM   Cn yaw  mom =   0.000    
-   ->  D1   elevon      =   0.000    
-
-      Select new  constraint,value  for elevon         c>  
- Operation of run case 1/1:   -unnamed-                              
- ==========================================================
-
-  variable          constraint              
-  ------------      ------------------------
-  A lpha        ->  alpha       =   10.00         
-  B eta         ->  beta        =   0.000         
-  R oll  rate   ->  pb/2V       =   0.000         
-  P itch rate   ->  qc/2V       =   0.000         
-  Y aw   rate   ->  rb/2V       =   0.000         
-  D1  elevon    ->  Cm pitchmom =   0.000         
   ------------      ------------------------
 
   C1  set level or banked  horizontal flight constraints
@@ -189,39 +88,37 @@
   Building source+doublet velocity AIC matrix...
   Building bound-vortex velocity matrix...
 
- iter d(alpha)   d(beta)    d(pb/2V)   d(qc/2V)   d(rb/2V)   elevon     
-   1 -0.000E+00 -0.000E+00  0.000E+00  0.000E+00 -0.000E+00 -0.920E+01
-   2 -0.000E+00 -0.000E+00  0.000E+00  0.000E+00 -0.000E+00 -0.951E-06
+ iter d(alpha)   d(beta)    d(pb/2V)   d(qc/2V)   d(rb/2V)  
+   1 -0.000E+00 -0.000E+00 -0.000E+00 -0.000E+00 -0.000E+00
  ---------------------------------------------------------------
  Vortex Lattice Output -- Total Forces
 
  Configuration: Advanced                                                    
      # Surfaces =   2
-     # Strips   =  60
-     # Vortices =1200
+     # Strips   =  20
+     # Vortices = 100
 
-  Sref =  257.21       Cref =  8.5735       Bref =  30.000    
-  Xref =  11.377       Yref =  0.0000       Zref =  0.0000    
+  Sref =  2.0000       Cref =  1.0000       Bref =  2.0000    
+  Xref =  0.0000       Yref =  0.0000       Zref =  0.0000    
 
  Standard axis orientation,  X fwd, Z down         
 
  Run case:  -unnamed-                              
 
-  Alpha =  10.00000     pb/2V =  -0.00000     p'b/2V =  -0.00000
+  Alpha =   0.00000     pb/2V =  -0.00000     p'b/2V =  -0.00000
   Beta  =   0.00000     qc/2V =   0.00000
   Mach  =     0.000     rb/2V =  -0.00000     r'b/2V =  -0.00000
 
-  CXtot =   0.04020     Cltot =  -0.00000     Cl'tot =  -0.00000
-  CYtot =  -0.00000     Cmtot =   0.00000
-  CZtot =  -0.28063     Cntot =  -0.00000     Cn'tot =  -0.00000
+  CXtot =  -0.00000     Cltot =  -0.00000     Cl'tot =  -0.00000
+  CYtot =   0.00000     Cmtot =   0.00000
+  CZtot =  -0.00000     Cntot =  -0.00000     Cn'tot =  -0.00000
 
-  CLtot =   0.28335
-  CDtot =   0.00914
-  CDvis =   0.00000     CDind = 0.0091416
-  CLff  =   0.28496     CDff  = 0.0081823    | Trefftz
-  CYff  =   0.00000         e =    0.9028    | Plane  
+  CLtot =   0.00000
+  CDtot =   0.00000
+  CDvis =   0.00000     CDind = 0.0000000
+  CLff  =   0.00000     CDff  = 0.0000000    | Trefftz
+  CYff  =   0.00000         e =    0.0000    | Plane  
 
-   elevon          =  -9.19531
 
  ---------------------------------------------------------------
 
@@ -230,12 +127,11 @@
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  alpha       =   10.00         
+  A lpha        ->  alpha       =   0.000         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
   Y aw   rate   ->  rb/2V       =   0.000         
-  D1  elevon    ->  Cm pitchmom =   0.000         
   ------------      ------------------------
 
   C1  set level or banked  horizontal flight constraints
@@ -260,21 +156,68 @@
                                VM  strip shear,moment    
 
  .OPER (case 1/1)   c>  
-Enter filename, or <return> for screen output   s>  
- File exists.  Append/Overwrite/Cancel  (A/O/C)?  C
- * Data not written
+Enter filename, or <return> for screen output   s>   ---------------------------------------------------------------
+ Vortex Lattice Output -- Total Forces
+
+ Configuration: Advanced                                                    
+     # Surfaces =   2
+     # Strips   =  20
+     # Vortices = 100
+
+  Sref =  2.0000       Cref =  1.0000       Bref =  2.0000    
+  Xref =  0.0000       Yref =  0.0000       Zref =  0.0000    
+
+ Standard axis orientation,  X fwd, Z down         
+
+ Run case:  -unnamed-                              
+
+  Alpha =   0.00000     pb/2V =  -0.00000     p'b/2V =  -0.00000
+  Beta  =   0.00000     qc/2V =   0.00000
+  Mach  =     0.000     rb/2V =  -0.00000     r'b/2V =  -0.00000
+
+  CXtot =  -0.00000     Cltot =  -0.00000     Cl'tot =  -0.00000
+  CYtot =   0.00000     Cmtot =   0.00000
+  CZtot =  -0.00000     Cntot =  -0.00000     Cn'tot =  -0.00000
+
+  CLtot =   0.00000
+  CDtot =   0.00000
+  CDvis =   0.00000     CDind = 0.0000000
+  CLff  =   0.00000     CDff  = 0.0000000    | Trefftz
+  CYff  =   0.00000         e =    0.0000    | Plane  
+
+
+ ---------------------------------------------------------------
+
+ Stability-axis derivatives...
+
+                             alpha                beta
+                  ----------------    ----------------
+ z' force CL |    CLa =   2.473917    CLb =  -0.000000
+ y  force CY |    CYa =   0.000000    CYb =  -0.000000
+ x' mom.  Cl'|    Cla =  -0.000000    Clb =   0.000000
+ y  mom.  Cm |    Cma =  -0.518285    Cmb =   0.000000
+ z' mom.  Cn'|    Cna =  -0.000000    Cnb =   0.000000
+
+                     roll rate  p'      pitch rate  q'        yaw rate  r'
+                  ----------------    ----------------    ----------------
+ z' force CL |    CLp =  -0.000000    CLq =   3.911262    CLr =   0.000000
+ y  force CY |    CYp =  -0.000000    CYq =   0.000000    CYr =   0.000000
+ x' mom.  Cl'|    Clp =  -0.190044    Clq =  -0.000000    Clr =   0.000000
+ y  mom.  Cm |    Cmp =   0.000000    Cmq =  -1.512002    Cmr =  -0.000000
+ z' mom.  Cn'|    Cnp =   0.000000    Cnq =  -0.000000    Cnr =  -0.000000
+
+ Neutral point  Xnp =   0.209500
 
  Operation of run case 1/1:   -unnamed-                              
  ==========================================================
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  alpha       =   10.00         
+  A lpha        ->  alpha       =   0.000         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
   Y aw   rate   ->  rb/2V       =   0.000         
-  D1  elevon    ->  Cm pitchmom =   0.000         
   ------------      ------------------------
 
   C1  set level or banked  horizontal flight constraints
@@ -306,12 +249,11 @@ Enter filename, or <return> for screen output   s>
 
   variable          constraint              
   ------------      ------------------------
-  A lpha        ->  alpha       =   10.00         
+  A lpha        ->  alpha       =   0.000         
   B eta         ->  beta        =   0.000         
   R oll  rate   ->  pb/2V       =   0.000         
   P itch rate   ->  qc/2V       =   0.000         
   Y aw   rate   ->  rb/2V       =   0.000         
-  D1  elevon    ->  Cm pitchmom =   0.000         
   ------------      ------------------------
 
   C1  set level or banked  horizontal flight constraints

@@ -1,6 +1,6 @@
 from chrysopelea import *
 
-side = 20
+side = 20.5
 
 h = side*math.sqrt(3)/2
 cs_start = 4
@@ -17,14 +17,15 @@ def make_aircraft(cs_len):
 	n = naca(position=(h,side/2,0),chord=cs_len)
 	n.add_control(Control('elevon',xhinge=1))
 	s.add_section(n)
+	s.set_nchord(5)
+	s.set_nspan(5)
 
 	a = avl()
 	a.xyzref = (0, 0, 0)
 	a.add_surface(s)
-	a.set_nchord(20)
 	return a
 
-cs_len = 2
+cs_len = 2.5
 a = make_aircraft(cs_len)
 
 a.draw()

@@ -1,13 +1,8 @@
 
 load chrysopelea.avl
 oper
-a
-a 10
-d1
-pm 0
-x
-vm
-chrysopelea.dis
+X
+ST
 
 quit
 

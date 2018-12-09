@@ -5,7 +5,7 @@ Advanced
 #IYsym		IZsym		Zsym		Vehicle Symmetry
 0 		0 		0
 #Sref		Cref		Bref		Reference Area and Lengths
-2.0 		1.0 		2
+2.5 		0.625 		4
 #Xref	 	Yref	 	Zref	 	Center of Gravity Location
 0 		0 		0
 
@@ -25,6 +25,6 @@ NACA
 #----------------------------------------------
 SECTION
 #Xle	 	Yle	 	Zle	 	Chord	 	Ainc	 	Nspan	 	Sspace
-0 	 	1 	 	0 	 	1 	 	0 	 	10 	 	1 
+1 	 	2 	 	0 	 	0.25 	 	0 	 	10 	 	1 
 NACA
 0014
