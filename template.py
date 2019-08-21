@@ -15,5 +15,4 @@ p.add_surface(m)
 
 p.draw()
 p.set_attitude(alpha=10)
-print(p.cl,p.cdi,p.cl/p.cdi)
-print(p.
+print(p.CL,p.CDi,p.CL/p.CDi)

@@ -46,7 +46,7 @@ class dynamic(avl):
 	temperature = "K"
 
 	@property
-	def cd0(self):
+	def CD0(self):
 		c = 0
 		for k in self.surfaces.keys():
 			c += self.surfaces[k].integrated_cd0
@@ -61,16 +61,16 @@ class dynamic(avl):
 	@property
 	def climb_cl(self):
 		a = 0.25* self.rho**2 * self.speed**4 * self.area**2/(math.pi*self.ar*self.e)**2
-		b = 0.25*self.rho**2 * self.speed**4 *self.area**2 *(1 + 2*self.cd0/(math.pi*self.ar*self.e))
+		b = 0.25*self.rho**2 * self.speed**4 *self.area**2 *(1 + 2*self.CD0/(math.pi*self.ar*self.e))
 		b -= self.thrust*self.rho* self.speed**2 * self.area / (math.pi*self.ar*self.e)
-		c = self.thrust**2 + 0.25*self.rho**2 * self.speed**4 * self.area**2 * self.cd0**2
-		c -=  self.weight**2 + self.thrust*self.rho*self.speed**2 * self.area*self.cd0
+		c = self.thrust**2 + 0.25*self.rho**2 * self.speed**4 * self.area**2 * self.CD0**2
+		c -=  self.weight**2 + self.thrust*self.rho*self.speed**2 * self.area*self.CD0
 		l = math.sqrt( (-b + math.sqrt(b**2 - 4*a*c)) / (2*a) ) # ignore the extraneous solution where cl**2 < 0
 		return l
 
 	@property
 	def slope(self):
-		return (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.cdi + self.cd0))/self.weight
+		return (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.CDi + self.CD0))/self.weight
 	@property
 	def roc(self):
 		return self.slope*self.speed
@@ -89,8 +89,8 @@ class dynamic(avl):
 				print("cdi form",l**2/(math.pi*self.ar*self.e))
 				self.set_attitude(cl=l)
 				sl = self.slope
-				print("cdi",self.cdi)
-				print("cd0",self.cd0)
+				print("cdi",self.CDi)
+				print("cd0",self.CD0)
 				slope.append(sl)
 				rate.append(sl*self.speed)
 				cl.append(l)
@@ -116,14 +116,14 @@ class dynamic(avl):
 		while abs(self.speed - v0) > self.vtol:
 			self.set_attitude(cl=self.climb_cl)
 			if fast:
-				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.CD0))/self.weight
 				r0 = slope*self.speed
 			else:
 				r0 = self.roc
 			v0 = self.speed
 			self.speed += self.dv
 			if fast:
-				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.CD0))/self.weight
 				r1 = slope*self.speed
 			else:
 				self.set_attitude(cl=self.climb_cl)
@@ -131,7 +131,7 @@ class dynamic(avl):
 			v1 = self.speed
 			self.speed += self.dv
 			if fast:
-				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.cd0))/self.weight
+				slope = (self.thrust - 0.5*self.rho*self.speed**2 *self.area * (self.climb_cl**2/(math.pi*self.ar*self.e)+ self.CD0))/self.weight
 				r2 = slope*self.speed
 			else:
 				self.set_attitude(cl=self.climb_cl)
@@ -155,10 +155,10 @@ class dynamic(avl):
 			self.set_attitude()
 			P = self.thrust*self.speed
 			e = self.e
-			v = math.sqrt(2*self.weight/(self.rho*self.area*math.sqrt(math.pi*self.ar*e*3*self.cd0)))
+			v = math.sqrt(2*self.weight/(self.rho*self.area*math.sqrt(math.pi*self.ar*e*3*self.CD0)))
 			self.speed = v
 			print(self.speed,self.alpha,self.slope)
-		return P/self.weight - v*(0.5*self.rho*v**2*self.area*self.cd0/self.weight + self.weight*2/(self.area*self.rho*v**2*math.pi*self.ar*e))
+		return P/self.weight - v*(0.5*self.rho*v**2*self.area*self.CD0/self.weight + self.weight*2/(self.area*self.rho*v**2*math.pi*self.ar*e))
 
 	def set_attitude(self,cl=None,alpha=None,load_factor=1):
 		if cl==None and (alpha==None):
@@ -169,7 +169,7 @@ class dynamic(avl):
 	@property
 	def v_stall(self):
 		self.set_attitude(alpha=self.alpha_max)
-		return math.sqrt(2*self.weight/(self.rho*self.cl*self.area))
+		return math.sqrt(2*self.weight/(self.rho*self.CL*self.area))
 
 	def takeoff_distance_analytic(self,alpha=0,lame=False):
 		"""
@@ -182,9 +182,9 @@ class dynamic(avl):
 		self.speed = vto/math.sqrt(2)
 		t = self.thrust
 		if lame:
-			return 0.5*vto**2/(self.g* (t/self.weight - self.rolling_mu - 0.25*self.rho*vto**2 /self.weight*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl)) )
+			return 0.5*vto**2/(self.g* (t/self.weight - self.rolling_mu - 0.25*self.rho*vto**2 /self.weight*self.area*(self.CD0 + self.CDi - self.rolling_mu*self.CL)) )
 		a = self.g*(t/self.weight-self.rolling_mu)
-		b = self.g/self.weight*(0.5*self.rho*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl))
+		b = self.g/self.weight*(0.5*self.rho*self.area*(self.CD0 + self.CDi - self.rolling_mu*self.CL))
 		self.pitch_trim = e
 		try:
 			return 0.5/b*math.log(a/(a - b*vto**2))
@@ -202,13 +202,13 @@ class dynamic(avl):
 		self.speed = v_to
 		if self.weight*self.rolling_mu > self.motor.static_thrust:
 			return "Aircraft cannot roll -- insufficient thrust"
-		if self.weight*(self.rolling_mu) + 0.5*self.rho*self.area*self.speed**2 * (self.cd0 + self.cdi - self.rolling_mu*self.cl) >= self.thrust:
+		if self.weight*(self.rolling_mu) + 0.5*self.rho*self.area*self.speed**2 * (self.CD0 + self.CDi - self.rolling_mu*self.CL) >= self.thrust:
 			return "Aircraft cannot takeoff -- insufficient thrust at takeoff speed"
 		self.speed = 0
 		roll = 0
 		while self.speed < v_to:
 			roll += self.speed*self.dt
-			force = (self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + self.cdi - self.rolling_mu*self.cl) - self.rolling_mu*self.weight)
+			force = (self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.CD0 + self.CDi - self.rolling_mu*self.CL) - self.rolling_mu*self.weight)
 			self.speed += force*self.g/self.weight*self.dt
 			if (self.roll_max != None) and (roll > self.roll_max):
 				return "Aircraft cannot takoff within {}".format(self.roll_max)
@@ -223,16 +223,16 @@ class dynamic(avl):
 		while abs(self.speed - v0) > self.vtol:
 			self.set_attitude(cl=self.weight/(0.5*self.rho*self.area*self.speed**2))
 			e = self.e
-			cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
-			excess_thrust0 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+			CDi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+			excess_thrust0 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.CD0 + CDi)
 			v0 = self.speed
 			self.speed += self.dv
-			cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
-			excess_thrust1 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+			CDi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+			excess_thrust1 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.CD0 + CDi)
 			v1 = self.speed
 			self.speed += self.dv
-			cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
-			excess_thrust2 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+			CDi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+			excess_thrust2 = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.CD0 + CDi)
 			v2 = self.speed
 			coefs = np.polyfit([v0,v1,v2],[excess_thrust0,excess_thrust1,excess_thrust2],2)
 			self.speed = (-coefs[1] - math.sqrt(coefs[1]**2 - 4*coefs[0]*coefs[2]))/(2*coefs[0])
@@ -242,8 +242,8 @@ class dynamic(avl):
 				testv = np.linspace(0,200,100)
 				testt = testv**2*coefs[0] + testv*coefs[1] + coefs[2]
 				plt.plot(testv,testt)
-		cdi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
-		excess_thrust = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.cd0 + cdi)
+		CDi = self.weight**2/(math.pi*self.ar*self.e * (0.5*self.rho*self.speed**2*self.area)**2)
+		excess_thrust = self.thrust - 0.5*self.rho*self.speed**2*self.area*(self.CD0 + CDi)
 		self.set_attitude(cl=self.weight/(0.5*self.rho*self.area*self.speed**2))
 		if plot:
 			plt.scatter(vs+[self.speed],excess_thrusts+[excess_thrust])
@@ -321,10 +321,10 @@ class LiftingLine(object):
 	def area(self):
 		return sum(self.chord*self.space)
 	@property
-	def cl(self):
+	def CL(self):
 		return -2*sum(self.kappa*self.space)/sum(self.chord*self.space)
 	@property
-	def cdi(self):
+	def CDi(self):
 		return 2*sum(self.kappa*self.upwash*self.space)/sum(self.chord*self.space)
 	@property
 	def L(self):
@@ -334,7 +334,7 @@ class LiftingLine(object):
 		return sum(self.kappa*self.upwash*self.space)
 	@property
 	def e(self):
-		return (self.cl**2)/(math.pi*self.ar*self.cdi)
+		return (self.CL**2)/(math.pi*self.ar*self.CDi)
 	@property
 	def lengthwise_e(self):
 		return (2*self.L**2)/(math.pi*self.D*self.arclen**2)
@@ -386,12 +386,12 @@ class LiftingLine(object):
 
 	def print(self):
 		n = len(self.space)
-		print("cl",self.cl,"cdi",self.cdi)
+		print("cl",self.CL,"cdi",self.CDi)
 		print("ar",self.ar)
 		print("e",self.e)
 		print()
 		wash = self.upwash[int(n/2)]
-		print("wash",wash,'alpha',2*math.pi/180,"cdi/cl",self.cdi/self.cl)
+		print("wash",wash,'alpha',2*math.pi/180,"cdi/cl",self.CDi/self.CL)
 		alpha500 = 2*math.pi/180 + wash
 		print("correct",math.pi*self.chord[50]*alpha500, "actual", self.kappa[int(n/2)] )
 
