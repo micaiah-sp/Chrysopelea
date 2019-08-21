@@ -24,7 +24,8 @@ for h in [4.8]:
         m = naca(position=(cs_start*math.sqrt(3),cs_start-0.1,0),chord=nose+h+web-cs_start*math.sqrt(3))
         s.add_section(m)
         n = naca(position=(cs_start*math.sqrt(3),cs_start,0),chord=nose+h+cs_len-cs_start*math.sqrt(3))
-        n.add_control(Control('elevon',xhinge=cs_len/(nose+h+cs_len-cs_start*math.sqrt(3)) ))
+        n.add_control(Control('elevator',xhinge=cs_len/(nose+h+cs_len-cs_start*math.sqrt(3)) ))
+        n.add_control(Control('aileron',xhinge=cs_len/(nose+h+cs_len-cs_start*math.sqrt(3)), signdup=-1 ))
         s.add_section(n)
         n = naca(position=(nose,front/2,0),chord=h+cs_len)
     elif -1 <= cs_start-front/2 <= 1:
@@ -35,18 +36,21 @@ for h in [4.8]:
         n = naca(position=(nose,front/2,0),chord=h+web)
 
     if cs_start-front/2 <= 1:
-        n.add_control(Control('elevon',xhinge=cs_len/(h+cs_len)))
+        n.add_control(Control('elevator',xhinge=cs_len/(h+cs_len)))
+        n.add_control(Control('aileron',xhinge=cs_len/(h+cs_len), signdup=-1))
     s.add_section(n)
 
     if cs_start-front/2 > 1:
         m = naca(position=(nose+(cs_start-front/2)*h*2/front,cs_start-0.1,0),chord=h*(back/2-cs_start)/(back/2-front/2)+web)
         s.add_section(m)
         n = naca(position=(nose+(cs_start-front/2)*h*2/front,cs_start,0),chord=h*(back/2-cs_start)/(back/2-front/2)+cs_len)
-        n.add_control(Control('elevon',xhinge=cs_len/(h*(back/2-cs_start)/(back/2-front/2)+cs_len)))
+        n.add_control(Control('elevator',xhinge=cs_len/(h*(back/2-cs_start)/(back/2-front/2)+cs_len)))
+        n.add_control(Control('aileron',xhinge=cs_len/(h*(back/2-cs_start)/(back/2-front/2)+cs_len), signdup=-1))
         s.add_section(n)
 
     n = naca(position=(nose+h,back/2,0),chord=cs_len)
-    n.add_control(Control('elevon',xhinge=1))
+    n.add_control(Control('elevator',xhinge=1))
+    n.add_control(Control('aileron',xhinge=1, signdup=-1))
     s.add_section(n)
 
     a = avl()
@@ -100,14 +104,19 @@ for h in [4.8]:
     a.set_attitude(alpha=aoa)
     a.compute_stability = True
     print("alpha", aoa)
-    con = a.control_variables()['elevon']
+    con = a.control_variables()['elevator']
     a.set(con,'pm 0')
     print('CL',a.CL)
     print('CDi',a.CDi)
     print('CL/CDi',a.CL/a.CDi)
-    print('def',a.get_output('elevon'))
+    print('def',a.get_output('elevator'))
     print('Cn_beta',a.Cn_beta)
     print('Cl_beta',a.Cl_beta)
+    cl_ail = a.get_control_derivative('Cl', 'aileron')
+    print('Cl_aileron', cl_ail)
+    cn_ail = a.get_control_derivative('Cn', 'aileron')
+    print('Cn_aileron', cn_ail)
+    print('Cn_ail/Cl_ail', cn_ail/cl_ail)
     cllist.append(a.CL)
     hlist.append(h)
 plt.plot(hlist,cllist)

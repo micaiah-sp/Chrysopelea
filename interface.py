@@ -225,6 +225,10 @@ k"""
         self.execute()
         self.compute_stability = stab
 
+    def get_control_derivative(self, var, control):
+        con = self.control_variables()[control]
+        return self.get_stab(var + con)
+
     def get_output(self,var):
         if not self.output:
             self.execute()
