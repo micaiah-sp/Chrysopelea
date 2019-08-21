@@ -255,6 +255,10 @@ k"""
         plt.title('Bending Moment for alpha = {}'.format(self.alpha))
 
     @property
+    def Cl_beta(self):
+        return self.get_stab('Clb')
+
+    @property
     def Cm_alpha(self):
         return self.get_stab('Cma')
 
@@ -278,8 +282,16 @@ k"""
         return self.get_output('CDff')
 
     @property
+    def Cl(self):
+        return self.get_output('Cltot')
+
+    @property
     def Cm(self):
         return self.get_output('Cmtot')
+
+    @property
+    def Cm(self):
+        return self.get_output('Cntot')
 
     @property
     def alpha(self):
