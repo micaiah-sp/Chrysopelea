@@ -11,9 +11,9 @@ n = naca(position=(1,2,0),chord=0.25)
 n.add_control(Control('elevon',xhinge=0.3))
 m.add_section(n)
 p.add_surface(m)
-print(p.surfaces['Wing'].sections)
 
 
 p.draw()
 p.set_attitude(alpha=10)
 print(p.cl,p.cdi,p.cl/p.cdi)
+print(p.

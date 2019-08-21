@@ -1,8 +1,9 @@
 
 load chrysopelea.avl
 oper
-X
-ST
+a
+a 10
+x
 
 quit
 
