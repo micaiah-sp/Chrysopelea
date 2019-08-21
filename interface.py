@@ -50,6 +50,7 @@ class avl(object):
     
 
     def __init__(self,file=None):
+        self.compute_stability = False
         self.surfaces = {}
         if file != None:
             file_obj = open(file)
@@ -142,6 +143,8 @@ Advanced
         if operations is None:
             operations = self.operations_from_constraints()
             operations += '\nx'
+            if self.compute_stability:
+                operations += "\nST"
             if distribution:
                 operations += '\nvm\nchrysopelea.dis'
         operations += '\n'
@@ -217,9 +220,10 @@ k"""
             self.set(d,'pm 0')
 
     def stability(self):
-        operations = self.operations_from_constraints()
-        operations += "\nX\nST"
-        self.execute(operations)
+        stab = self.compute_stability
+        self.compute_stability = True
+        self.execute()
+        self.compute_stability = stab
 
     def get_output(self,var):
         if not self.output:
@@ -272,7 +276,7 @@ k"""
 
     @property
     def xac(self):
-        return -self.cma*self.cref/self.cla
+        return -self.Cm_alpha*self.cref/self.CL_alpha
 
     @property
     def CL(self):
