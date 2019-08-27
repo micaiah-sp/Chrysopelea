@@ -100,23 +100,23 @@ for h in [4.8]:
     a.xyzref = (a.xac-0.1*(h+nose),0,0)
     print('xcg',a.xyzref[0])
 
-    aoa = 10
+    aoa = 5
     a.set_attitude(alpha=aoa)
     a.compute_stability = True
     print("alpha", aoa)
     con = a.control_variables()['elevator']
     a.set(con,'pm 0')
+    con = a.control_variables()['aileron']
+    a.set(con, '{} 15'.format(con))
     print('CL',a.CL)
     print('CDi',a.CDi)
-    print('CL/CDi',a.CL/a.CDi)
+    #print('CL/CDi',a.CL/a.CDi)
     print('def',a.get_output('elevator'))
     print('Cn_beta',a.Cn_beta)
     print('Cl_beta',a.Cl_beta)
-    cl_ail = a.get_control_derivative('Cl', 'aileron')
-    print('Cl_aileron', cl_ail)
-    cn_ail = a.get_control_derivative('Cn', 'aileron')
-    print('Cn_aileron', cn_ail)
-    print('Cn_ail/Cl_ail', cn_ail/cl_ail)
+    print('Cl', a.Cl)
+    print('Cn', a.Cn)
+    print('Cn/Cl', a.Cn/a.Cl)
     cllist.append(a.CL)
     hlist.append(h)
 plt.plot(hlist,cllist)

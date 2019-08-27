@@ -42,7 +42,8 @@ class avl(object):
     """
     text = ""
     output = None
-    distribution = None
+    moment_dist = None
+    force_dist = None
     pitch_trim = None
     mach = 0
     xyzsym = (0,0,0)
@@ -51,6 +52,8 @@ class avl(object):
 
     def __init__(self,file=None):
         self.compute_stability = False
+        self.compute_moment_dist = False
+        self.compute_force_dist = False
         self.surfaces = {}
         if file != None:
             file_obj = open(file)
@@ -134,7 +137,7 @@ Advanced
             self.constraints.pop(c)
         return operations
 
-    def execute(self,operations=None,distribution=False):
+    def execute(self,operations=None):
         input = open('chrysopelea.avl','w')
         input.write(str(self))
         input.close()
@@ -145,8 +148,10 @@ Advanced
             operations += '\nx'
             if self.compute_stability:
                 operations += "\nST"
-            if distribution:
-                operations += '\nvm\nchrysopelea.dis'
+            if self.compute_moment_dist:
+                operations += '\nvm\nchrysopelea.m_dis'
+            if self.compute_force_dist:
+                operations += '\nfs\nchrysopelea.f_dis'
         operations += '\n'
         cmd_text = """
 load chrysopelea.avl
@@ -158,16 +163,21 @@ quit
         cmd.write(cmd_text)
         cmd.close()
         with open("chrysopelea_subproc_out","w") as subproc_out:
-            subprocess.run(avl_path + "<chrysopelea.ain>chrysopelea.aot",shell=True,stderr=subproc_out)
+            subprocess.run(avl_path + "<chrysopelea.ain>chrysopelea.aot",\
+                shell=True,stderr=subproc_out)
 
         out = open("chrysopelea.aot")
         out_text = out.read()
         out.close()
 
         if opArg is None:
-            if distribution:
-                out = open("chrysopelea.dis")
-                self.distribution = out.read()
+            if self.compute_moment_dist:
+                out = open("chrysopelea.m_dis")
+                self.moment_dist = out.read()
+                out.close()
+            if self.compute_force_dist:
+                out = open("chrysopelea.f_dis")
+                self.force_dist = out.read()
                 out.close()
 
 
@@ -204,7 +214,8 @@ k"""
     def set(self,var,cons):
         self.constraints[var] = cons
         self.output=None
-        self.distribution = None
+        self.moment_dist = None
+        self.force_dist = None
 
     def set_attitude(self,cl=None,alpha=0):
         """
@@ -243,10 +254,13 @@ k"""
             self.stability()
             return self.get_output(var)
 
-    def get_distribution(self,surf):
-        if not self.distribution:
-            self.execute(distribution=True)
-        text = self.distribution.split(surf)[1]
+    def get_moment_dist(self,surf):
+        if not self.moment_dist:
+            compute_md = self.compute_moment_dist
+            self.compute_moment_dist = True
+            self.execute()
+            self.compute_moment_dist = compute_md
+        text = self.moment_dist.split(surf)[1]
         text = re.split('\n *\n',text)[0]
         text = '\n'.join(text.split('\n')[3:])
         text = re.sub(' +',',',text)
@@ -255,8 +269,41 @@ k"""
         f = io.StringIO(text)
         return pd.read_csv(f)
 
+    def get_force_dist(self,surf):
+        if not self.moment_dist:
+            compute_fd = self.compute_force_dist
+            self.compute_force_dist = True
+            self.execute()
+            self.compute_force_dist = compute_fd
+        text = self.force_dist.split(surf)[1]
+        text0 = self.force_dist.split("Strip Forces referred to Strip Area, Chord")[1]
+        text0 = re.split('\n *\n',text0)[0]
+        text1 = self.force_dist.split("Strip Forces referred to Strip Area, Chord")[2]
+        text1 = re.split('\n *\n',text1)[0]
+        text = text0 + '\n' + '\n'.join(text1.split('\n')[2:-2])
+        text = re.sub(' +', ',', text)
+        text = re.sub('(^,)|(,$)','', text)
+        f = io.StringIO(text)
+        data = pd.read_csv(f)
+        data.sort_values(axis=0,by='Yle',inplace=True)
+        return data
+
+    def compute_Cl(self, surf):
+        force_data = self.get_force_dist(surf)
+        print(force_data)
+        moment = force_data.loc[:, 'cl'] * force_data.loc[:, 'Area'] * force_data.loc[:, 'Yle']
+        moment = moment.sum()
+        return moment / (self.area * self.span)
+
+    def compute_Cn(self, surf):
+        force_data = self.get_force_dist(surf)
+        moment = force_data.loc[:, 'cl'] * force_data.loc[:, 'ai'] * -np.pi/180 *\
+                 force_data.loc[:, 'Area'] * force_data.loc[:, 'Yle']
+        moment = moment.sum()
+        return moment / (self.area * self.span)
+
     def plot_bending_moment(self,surf):
-        dist = self.get_distribution(surf)
+        dist = self.get_moment_dist(surf)
         plt.plot(dist.iloc[:,0],dist.iloc[:,1])
         plt.xlabel('Semispan Location')
         plt.ylabel('Moment per (unit span * unit area * unit dynamic pressure)')
@@ -298,7 +345,7 @@ k"""
         return self.get_output('Cmtot')
 
     @property
-    def Cm(self):
+    def Cn(self):
         return self.get_output('Cntot')
 
     @property
@@ -427,14 +474,15 @@ SURFACE
         a = 0
         for n in range(1,len(self.sections)):
             a += 0.5*abs(self.sections[n].position[1] - self.sections[n-1].position[1])*(self.sections[n].chord + self.sections[n-1].chord)
-        if self.yduplicate != None:
-            a *= 2
-        return a
+        if self.yduplicate is None:
+            return a
+        else:
+            return a*2
     @property
     def span(self):
         a = 0
         pos = [s.position[1] for s in self.sections]
-        if self.yduplicate == None:
+        if self.yduplicate is None:
             b = abs(max(pos) - min(pos))
         else:
             b = 2*max([abs(p-self.yduplicate) for p in pos])
