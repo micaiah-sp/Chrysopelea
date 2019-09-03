@@ -1,4 +1,5 @@
 import math
+back = 50
 import subprocess
 from collections import OrderedDict
 import re
@@ -258,6 +259,7 @@ k"""
         if not self.moment_dist:
             compute_md = self.compute_moment_dist
             self.compute_moment_dist = True
+            print("re-executing")
             self.execute()
             self.compute_moment_dist = compute_md
         text = self.moment_dist.split(surf)[1]
@@ -270,9 +272,10 @@ k"""
         return pd.read_csv(f)
 
     def get_force_dist(self,surf):
-        if not self.moment_dist:
+        if not self.force_dist:
             compute_fd = self.compute_force_dist
             self.compute_force_dist = True
+            print("re-executing")
             self.execute()
             self.compute_force_dist = compute_fd
         text = self.force_dist.split(surf)[1]
@@ -290,13 +293,15 @@ k"""
 
     def compute_Cl(self, surf):
         force_data = self.get_force_dist(surf)
-        print(force_data)
         moment = force_data.loc[:, 'cl'] * force_data.loc[:, 'Area'] * force_data.loc[:, 'Yle']
         moment = moment.sum()
         return moment / (self.area * self.span)
 
     def compute_Cn(self, surf):
         force_data = self.get_force_dist(surf)
+        #force_data[ 'd' ] = force_data.loc[:, 'cl'] * force_data.loc[:, 'ai'] * np.pi/180 * force_data.loc[:, 'Area' ]
+        force_data[ 'd' ] = force_data.loc[:, 'ai'] * np.pi/180 * force_data.loc[:, 'Area' ]
+        print(force_data)
         moment = force_data.loc[:, 'cl'] * force_data.loc[:, 'ai'] * -np.pi/180 *\
                  force_data.loc[:, 'Area'] * force_data.loc[:, 'Yle']
         moment = moment.sum()
