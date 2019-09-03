@@ -262,7 +262,7 @@ class dynamic(avl):
 		print("Climb Rate:  {} {} / {}".format(self.roc,self.length,self.time))
 
 class imperial_dynamic(dynamic):
-	rho = 0.0023769
+	rho = 0.00237717
 	mu = 0.3766*10**-6
 	g = 32.17405
 

@@ -1,15 +1,16 @@
 from chrysopelea import *
 
-side_len = 12
+side_len = 1.57*10
 le=3.5
 te=2.5
-cs_dy = 6
-cs_dx = 3
+cs_dy = 7
+cs_dx = 2.5
 sweep_cs = False
 vstab_max_chord = 3
 vstab_taper = 0.7
 vstab_sweep = 40
 vstab_dz = 3.5
+V = 30
 
 discon_dy = 0.01
 
@@ -57,12 +58,18 @@ print('xac',a.xac)
 a.xyzref = (a.xac-0.1*(le+te+side_len*np.sqrt(3)/2),0,0)
 print('xcg',a.xyzref[0])
 
-#a.xyzref = (a.xac,0,0)
-#print('xcg',a.xyzref[0])
-a.set_attitude(alpha=5)
+S = a.area/144
+rho = imperial_dynamic.rho
+print(rho)
+L = 9/16
+CL_req = L/(0.5*rho*V**2*S)
+
+#a.set_attitude(alpha=5)
+a.set_attitude(cl=CL_req)
 con = a.control_variables()['elevon']
 a.set(con, "pm 0")
 print('CL',a.CL)
+print('alpha', a.alpha)
 print('CDi',a.CDi)
 print('CL/CDi',a.CL/a.CDi)
 print('def',a.get_output('elevon'))
