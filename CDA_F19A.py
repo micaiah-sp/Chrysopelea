@@ -1,18 +1,19 @@
 from chrysopelea import *
 
-side_len = 1.57*10
+side_len = 1.57*8
 le=3.5
 te=2.5
-cs_dy = 6
+cs_dy = 9
 cs_dx = 2.5
 sweep_cs = False
+vstab_offset = 1
 vstab_max_chord = 3
 vstab_taper = 0.7
 vstab_sweep = 40
 vstab_dz = 3.5
 V = 30
 
-discon_dy = 0.01
+discon_dy = 0.1
 
 a = avl()
 
@@ -38,19 +39,17 @@ s.add_section(n)
 
 a.add_surface(s)
 
-"""
 v = Surface('Vstab')
-v.add_naca((le + side_len*np.sqrt(3)/2 + te - vstab_max_chord, side_len/2, 0),\
+v.add_naca((le + side_len*np.sqrt(3)/2 + te - vstab_max_chord + vstab_offset, side_len/2, 0),\
            chord=vstab_max_chord)
 v.add_naca((le + side_len*np.sqrt(3)/2 + te - vstab_max_chord +
-                vstab_dz*np.tan(vstab_sweep*np.pi/180), side_len/2, vstab_dz),\
+                vstab_dz*np.tan(vstab_sweep*np.pi/180) + vstab_offset, side_len/2, vstab_dz),\
            chord=vstab_max_chord*vstab_taper)
 a.add_surface(v)
-"""
 
 
-a.set_nspan(5)
-a.set_nchord(10)
+a.set_nspan(10)
+a.set_nchord(20)
 #
 
 a.draw()
@@ -65,8 +64,8 @@ rho = imperial_dynamic.rho
 L = 9/16
 CL_req = L/(0.5*rho*V**2*S)
 
-#a.set_attitude(alpha=5)
-a.set_attitude(cl=CL_req)
+a.set_attitude(alpha=8)
+#a.set_attitude(cl=CL_req)
 con = a.control_variables()['elevon']
 a.set(con, "pm 0")
 print('CL',a.CL)
