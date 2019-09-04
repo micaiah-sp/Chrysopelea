@@ -3,7 +3,7 @@ from chrysopelea import *
 side_len = 1.57*10
 le=3.5
 te=2.5
-cs_dy = 7
+cs_dy = 6
 cs_dx = 2.5
 sweep_cs = False
 vstab_max_chord = 3
@@ -38,6 +38,7 @@ s.add_section(n)
 
 a.add_surface(s)
 
+"""
 v = Surface('Vstab')
 v.add_naca((le + side_len*np.sqrt(3)/2 + te - vstab_max_chord, side_len/2, 0),\
            chord=vstab_max_chord)
@@ -45,6 +46,7 @@ v.add_naca((le + side_len*np.sqrt(3)/2 + te - vstab_max_chord +
                 vstab_dz*np.tan(vstab_sweep*np.pi/180), side_len/2, vstab_dz),\
            chord=vstab_max_chord*vstab_taper)
 a.add_surface(v)
+"""
 
 
 a.set_nspan(5)
@@ -60,7 +62,6 @@ print('xcg',a.xyzref[0])
 
 S = a.area/144
 rho = imperial_dynamic.rho
-print(rho)
 L = 9/16
 CL_req = L/(0.5*rho*V**2*S)
 
