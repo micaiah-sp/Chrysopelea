@@ -2,3 +2,4 @@ chrysopelea*
 !chrysopelea.py
 *.swp
 __pycache__/*
+old/
