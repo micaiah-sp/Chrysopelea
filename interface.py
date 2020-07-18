@@ -1,5 +1,4 @@
 import math
-back = 50
 import subprocess
 from collections import OrderedDict
 import re
