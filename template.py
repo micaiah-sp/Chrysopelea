@@ -14,6 +14,7 @@ m.add_section(n)
 p.add_surface(m)
 
 
+print(p.mean_aerodynamic_chord)
 p.draw()
 p.set_attitude(alpha=5)
 p.compute_force_dist = True

@@ -104,12 +104,21 @@ Advanced
             return self.surfaces[ref_surf_name].area
         else:
             return 1
+
     @property
     def mean_chord(self,ref_surf_name='Wing'):
         if ref_surf_name in self.surfaces.keys():
             return self.surfaces[ref_surf_name].mean_chord
         else:
             return 1
+
+    @property
+    def mean_aerodynamic_chord(self,ref_surf_name='Wing'):
+        if ref_surf_name in self.surfaces.keys():
+            return self.surfaces[ref_surf_name].mean_aerodynamic_chord
+        else:
+            return 1
+
     @property
     def span(self,ref_surf_name='Wing'):
         if ref_surf_name in self.surfaces.keys():
@@ -496,9 +505,22 @@ SURFACE
     @property
     def mean_chord(self):
         return self.area/self.span
+
+    @property
+    def mean_aerodynamic_chord(self):
+        def mac(sect0, sect1):
+            if (sect0.chord == sect1.chord):
+                return sect0.chord**2*abs(sect0.position[1] - sect1.position[1])
+            return (sect0.chord**2-sect1.chord**3)/3*abs(sect0.position[1] - sect1.position[1])/(sect0.chord - sect1.chord)
+        total = 0
+        for iSect in range(1, len(self.sections)):
+            total += mac(self.sections[iSect], self.sections[iSect - 1])
+        return total*2/self.area
+
     @property
     def ar(self):
         return self.span/self.mean_chord
+
     @property
     def integrated_cd0(self):
         """
