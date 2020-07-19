@@ -1,7 +1,7 @@
 from Avl import *
 
 # change the command to run AVL if the default does not work
-Avl.avl_cmd = "~/programs/Avl/bin/avl" 
+#Avl.avl_cmd = "~/programs/Avl/bin/avl" 
 
 
 # test construction
@@ -118,5 +118,3 @@ a0.print_stability()
 a0.name = "Test"
 a0.write("test.avl")
 a2 = Avl("test.avl")
-a3 = Avl("BB7.avl")
-a3.draw()
