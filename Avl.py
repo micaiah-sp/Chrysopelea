@@ -1,4 +1,5 @@
 from Surface import *
+import matplotlib.pyplot as plt
 
 class Avl:
     """
@@ -159,12 +160,12 @@ quit
         out.close()
 
         if self.compute_moment_dist:
-            out = open("chrysopelea.m_dis")
-            self.moment_dist = out.read()
+            out = open("chrysopelea.amdist")
+            self.moment_data = out.read()
             out.close()
         if self.compute_force_dist:
-            out = open("chrysopelea.f_dis")
-            self.force_dist = out.read()
+            out = open("chrysopelea.afdist")
+            self.force_data = out.read()
             out.close()
 
         self.output = out_text
@@ -231,36 +232,42 @@ k"""
             raise Exception("AVL not converged.")
         return float(text)
 
-    def get_moment_dist(self,surf):
-        text = self.moment_dist.split(surf)[1]
-        text = re.split('\n *\n',text)[0]
+    def moment_dist(self, surf=None):
+        if surf is None:
+            surf = self.reference_surface()
+        text = self.moment_data.split(surf.name)[1]
+        text = re.split('\n *\n', text)[0]
         text = '\n'.join(text.split('\n')[3:])
-        text = re.sub(' +',',',text)
-        text = re.sub('\n,','\n',text)
-        text = re.sub('(^,)|(,$)','',text)
+        text = re.sub(' +', ',', text)
+        text = re.sub('\n,', '\n', text)
+        text = re.sub('(^,)|(,$)', '', text)
         f = io.StringIO(text)
         return pd.read_csv(f)
 
-    def get_force_dist(self,surf):
-        text = self.force_dist.split(surf)[1]
-        text0 = self.force_dist.split("Strip Forces referred to Strip Area, Chord")[1]
-        text0 = re.split('\n *\n',text0)[0]
-        text1 = self.force_dist.split("Strip Forces referred to Strip Area, Chord")[2]
-        text1 = re.split('\n *\n',text1)[0]
+    def force_dist(self, surf=None):
+        if surf is None:
+            surf = self.reference_surface()
+        text = self.force_data.split(surf.name)[1]
+        text0 = self.force_data.split("Strip Forces referred to Strip Area, Chord")[1]
+        text0 = re.split('\n *\n', text0)[0]
+        text1 = self.force_data.split("Strip Forces referred to Strip Area, Chord")[2]
+        text1 = re.split('\n *\n', text1)[0]
         text = text0 + '\n' + '\n'.join(text1.split('\n')[2:-2])
         text = re.sub(' +', ',', text)
-        text = re.sub('(^,)|(,$)','', text)
+        text = re.sub('(^,)|(,$)', '', text)
         f = io.StringIO(text)
         data = pd.read_csv(f)
-        data.sort_values(axis=0,by='Yle',inplace=True)
+        data.sort_values(axis=0, by='Yle', inplace=True)
         return data
 
-    def plot_bending_moment(self,surf):
-        dist = self.get_moment_dist(surf)
-        plt.plot(dist.iloc[:,0],dist.iloc[:,1])
+    def plot_bending_moment(self, surf=None):
+        if surf is None:
+            surf = self.reference_surface()
+        dist = self.moment_dist(surf)
+        plt.plot(dist.iloc[:,0], dist.iloc[:,1])
         plt.xlabel('Semispan Location')
         plt.ylabel('Moment per (unit span * unit area * unit dynamic pressure)')
-        plt.title('Bending Moment for alpha = {}'.format(self.alpha))
+        plt.title('Bending Moment for alpha = {}'.format(self.angle_of_attack()))
 
     def Cl_beta(self):
         return self.get_output('Clb')

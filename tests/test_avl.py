@@ -52,6 +52,25 @@ a0.print_aerodynamics()
 print()
 
 # test spanwise distribution plots
+a0.set_attitude(alpha=10)
+a0.compute_moment_dist = True
+a0.compute_force_dist = True
+a0.plot_treffitz = True
+a0.execute()
+print('Treffitz plot saved as postscript file "plot.ps"')
+print("Moment data:")
+print(a0.moment_dist())
+print("force data:")
+print(a0.force_dist())
+print("Plotting bending moment")
+print("You should see a plot of bending moment versus semispan location.")
+a0.plot_bending_moment()
+plt.show()
+print("Bending moment plot closed.")
+a0.compute_moment_dist = False
+a0.compute_force_dist = False
+a0.plot_treffitz = False
+print()
 
 # test that twist has correct effect
 print("Uncambered untwisted wing")
