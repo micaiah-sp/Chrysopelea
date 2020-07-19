@@ -37,9 +37,11 @@ print()
 # test aerodynamics
 print("Inviscid aerodynamics:")
 a0.set_attitude(alpha=10)
+a0.plot_treffitz = True
 a0.execute()
 a0.print_aerodynamics()
 assert round(a0.induced_drag_coef(), 5) == round(a0.drag_coef(), 5)
+a0.plot_treffitz = False
 print()
 
 a0.set_attitude(alpha=10)
@@ -49,6 +51,9 @@ a0.execute()
 a0.print_aerodynamics()
 print()
 
+# test spanwise distribution plots
+
+# test that twist has correct effect
 print("Uncambered untwisted wing")
 a1 = Avl()
 
@@ -75,7 +80,7 @@ assert round(a1.angle_of_attack(), 3) > 0
 assert round(a1.induced_drag_coef(), 3) > 0
 print()
 
-# Test stability and trim
+# test stability and trim
 print("Trimmed at lift coefficient 0.8 with 3 degree rudder deflection")
 a0.set_attitude(lift_coef=0.8)
 a0.set(a0.control_variables()["elevator"], "pm 0")

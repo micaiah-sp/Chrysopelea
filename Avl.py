@@ -42,6 +42,7 @@ class Avl:
         self.compute_stability = False
         self.compute_moment_dist = False
         self.compute_force_dist = False
+        self.plot_treffitz = False
         self.surfaces = {}
         if not (geom_file is None):
             file_obj = open(geom_file)
@@ -139,6 +140,8 @@ class Avl:
             operations += '\nvm\nchrysopelea.amdist'
         if self.compute_force_dist:
             operations += '\nfs\nchrysopelea.afdist'
+        if self.plot_treffitz:
+            operations += "\nt\nh"
         operations += '\n'
         cmd_text = """
 load chrysopelea.avl
@@ -182,7 +185,6 @@ quit
 g
 k"""
         self.execute(operations)
-        self.output = None
 
     def pop(self, surfname):
         if surfname in self.surfaces:

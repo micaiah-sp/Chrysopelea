@@ -4,3 +4,4 @@ rm *.bl
 rm *.ain
 rm *.aout
 rm chrysopelea.avl
+rm plot.ps
