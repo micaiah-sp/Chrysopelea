@@ -118,3 +118,5 @@ a0.print_stability()
 a0.name = "Test"
 a0.write("test.avl")
 a2 = Avl("test.avl")
+a3 = Avl("BB7.avl")
+a3.draw()
