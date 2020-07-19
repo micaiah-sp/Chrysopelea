@@ -9,7 +9,7 @@ class Surface:
         self.sections = []
         self.name = name
         self.cspace = 1
-        nchord = 5
+        self.nchord = 5
 
     def add_Section(self, sec):
         sec.parent=self
@@ -86,15 +86,18 @@ SURFACE
         return math.sqrt(d1**2 + d2**2)
 
     def drag_coef_2D(self):
-        c = 0
-        for n in range(1,len(self.sections)):
-            c0 = self.sections[n].drag_coef()*self.section[n].chord
-            c1 = self.sections[n-1].drag_coef()*self.sections[n].chord
-            chordwise = 0.5*(c0 + c1)
-            c += chordwise*self.dist(self.sections[n], self.sections[n - 1])
-        if not (self.yduplicate is None):
-            c *= 2
-        return c/self.area()
+        if self.parent.reynolds is None:
+            return 0
+        else:
+            c = 0
+            for n in range(1,len(self.sections)):
+                c0 = self.sections[n].drag_coef()*self.sections[n].chord
+                c1 = self.sections[n-1].drag_coef()*self.sections[n].chord
+                chordwise = 0.5*(c0 + c1)
+                c += chordwise*self.dist(self.sections[n], self.sections[n - 1])
+            if not (self.yduplicate is None):
+                c *= 2
+            return c/self.area()
 
     @classmethod
     def from_text(cls, text):
@@ -113,7 +116,7 @@ SURFACE
         for sect in sects:
             section = section_from_text(sect)
             section.translate(delta)
-            s.add_section(section)
+            s.add_Section(section)
         return s
 
     def scale(self, factor):

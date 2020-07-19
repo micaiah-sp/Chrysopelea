@@ -1,13 +1,14 @@
 import subprocess
 import io
-import re
 import pandas as pd
+from Control import *
 
 class Section:
     polar = None
     parent = None
     reynolds = None
     xfoil_cmd = "xfoil"
+    number_iterations = 1000
 
     def __init__(self, coord_file, position=(0,0,0), chord=1,\
                  incidence=0, sspace=1, nspan=10):
@@ -19,14 +20,16 @@ class Section:
 
     @classmethod
     def from_text(cls, text):
-        entries = re.split('\n|\t',text)
+        entries = re.split('\n|\t', text)
         entries = [e for e in entries if e != '']
         coord = (float(entries[0]), float(entries[1]), float(entries[2]))
         chord = float(entries[3])
+        incidence = int(entries[4])
         sspace = int(entries[5]); nspan = int(entries[6])
-        idientity = cls.identity_from_text(text)
-        section = cls(identity, position=coord, chord=chord, sspace=sspace, nspan=nspan)
-        section.add_control_from_text(text)
+        identity = cls.identity_from_text(text)
+        section = cls(identity, position=coord, chord=chord, incidence=incidence, \
+                      sspace=sspace, nspan=nspan)
+        section.add_Control_from_text(text)
         return section
 
     @classmethod
@@ -36,15 +39,15 @@ class Section:
         afile = re.split('\n|\t',afile)[0]
         return afile
 
-    def add_control(self, control):
+    def add_Control(self, control):
         control.parent = self
         self.controls.append(control)
 
-    def add_control_from_text(self,text):
+    def add_Control_from_text(self, text):
         con = text.split('CONTROL')
         if len(con) > 1:
             con = Control.from_text(con[1])
-            self.add_control(con)
+            self.add_Control(con)
 
     def drag_coef(self):
         return self.polar.iloc[0]['CD']
@@ -52,18 +55,18 @@ class Section:
     def lift_coef(self):
         return self.polar.iloc[0]['CL']
 
-    def set_attitude(self, alpha=None, CL=0):
+    def set_attitude(self, alpha=None, lift_coef=0):
         if not (alpha is None):
             self.attitude = "alfa {}".format(alpha + self.incidence)
         else:
-            self.attitude = "CL {}".format(CL)
+            self.attitude = "CL {}".format(lift_coef)
 
     def set_reynolds(self, value=None):
         if value:
             self.reynolds = value
         else:
-            return self.parent.parent.reynolds()*self.chord / \
-                   self.parent.parent.ref_chord()
+            self.reynolds = self.parent.parent.reynolds*self.chord / \
+                            self.parent.parent.reference_chord()
         self.reynolds = int(self.reynolds)
 
     def load_cmd(self):
@@ -85,13 +88,15 @@ class Section:
 {}
 {}
 oper{}
+iter {}
 pacc
 chrysopelea.xpolar
 
 {}
 
 quit
-""".format(self.load_cmd(), self.misc_cmds(), reynolds_cmd, self.attitude)
+""".format(self.load_cmd(), self.misc_cmds(), reynolds_cmd, self.number_iterations,\
+           self.attitude)
         input.write(xfoil_cmds)
         input.close()
         cmd = "{} < chrysopelea.xin > chrysopelea.xout".format(self.xfoil_cmd)
@@ -112,8 +117,8 @@ quit
         s = """
 #----------------------------------------------
 SECTION
-#Xle         Yle         Zle         Chord         Ainc         Nspan         Sspace
-{}          {}          {}          {}          {}          {}          {} 
+#Xle \tYle \tZle \tChord \tAinc \tNspan \tSspace
+{} \t{} \t{} \t{} \t{} \t{} \t{} 
 {}""".format(self.position[0], self.position[1], self.position[2], self.chord, \
              self.incidence, self.nspan, self.sspace, self.load_text())
         for con in self.controls:
@@ -131,6 +136,7 @@ class Naca(Section):
         self.chord = chord
         self.sspace = sspace
         self.nspan = nspan
+        self.incidence = incidence
 
     @classmethod
     def identity_from_text(cls, text):

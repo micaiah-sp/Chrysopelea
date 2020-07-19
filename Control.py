@@ -1,3 +1,5 @@
+import re
+
 class Control:
 
     def __init__(self, name, gain=1, xhinge=0.5, xyzhvec=(0,0,0), signdup=1):
@@ -18,8 +20,8 @@ class Control:
         # The space at the end of the last line is necessary
         string = """
 CONTROL
-#NAME         GAIN        XHINGE        XHVEC        YHVEC        ZHVEC        SIGNDUP
-{}         {}         {}         {}         {}         {}         {} """
+#NAME \tGAIN \tXHINGE \tXHVEC \tYHVEC \tZHVEC \tSIGNDUP
+{} \t{} \t{} \t{} \t{} \t{} \t{} \t"""
         return string.format(self.name, self.gain, self.xhinge, self.xyzhvec[0],\
                              self.xyzhvec[1], self.xyzhvec[2], self.signdup)
 

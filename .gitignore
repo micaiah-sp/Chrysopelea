@@ -4,3 +4,4 @@ chrysopelea*
 __pycache__/*
 old/
 *.bl
+tests/test.avl
