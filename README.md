@@ -32,9 +32,7 @@ attributes `Avl.avl_cmd` and `Section.xfoil_cmd` respectively. Python dependenci
 - Python 3
 - Python libraries:
   - matplotlib
-  - re
-  - subprocess
-  - io
+  - pandas
 
 ## Installation
 No installation is necessary. To verify that Chrysopelea functions properly, navigate to the directory `tests` and execute `python3 *.py`. You should see
