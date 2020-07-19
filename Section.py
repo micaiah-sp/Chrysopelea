@@ -9,12 +9,13 @@ class Section:
     reynolds = None
     xfoil_cmd = "xfoil"
 
-    def __init__(self, coord_file, position=[0,0,0], chord=1,\
-                 sspace=1, nspan=10):
+    def __init__(self, coord_file, position=(0,0,0), chord=1,\
+                 incidence=0, sspace=1, nspan=10):
         self.controls = []
         self.coord_file = coord_file
-        self.position=position
+        self.position = position
         self.chord = chord
+        self.incidence = incidence
 
     @classmethod
     def from_text(cls, text):
@@ -53,7 +54,7 @@ class Section:
 
     def set_attitude(self, alpha=None, CL=0):
         if not (alpha is None):
-            self.attitude = "alfa {}".format(alpha)
+            self.attitude = "alfa {}".format(alpha + self.incidence)
         else:
             self.attitude = "CL {}".format(CL)
 
@@ -112,9 +113,9 @@ quit
 #----------------------------------------------
 SECTION
 #Xle         Yle         Zle         Chord         Ainc         Nspan         Sspace
-{}          {}          {}          {}          0          {}          {} 
+{}          {}          {}          {}          {}          {}          {} 
 {}""".format(self.position[0], self.position[1], self.position[2], self.chord, \
-             self.nspan, self.sspace, self.load_text())
+             self.incidence, self.nspan, self.sspace, self.load_text())
         for con in self.controls:
             s += str(con)
         return s
@@ -123,7 +124,7 @@ SECTION
         self.position = tuple([self.position[i] + coord[i] for i in range(3)])
 
 class Naca(Section):
-    def __init__(self, desig, position=[0,0,0], chord=1, sspace=1, nspan=10):
+    def __init__(self, desig, position=(0,0,0), chord=1, incidence=0, sspace=1, nspan=10):
         self.controls = []
         self.desig = desig
         self.position = position
@@ -143,3 +144,8 @@ class Naca(Section):
     def load_text(self):
         return "NACA\n{}".format(self.desig)
 
+def section_from_text(text):
+    if "NACA" in text:
+        return Naca.from_text(text)
+    else:
+        return Section.from_text(text)
