@@ -1,3 +1,3 @@
-rm chrysopelea.a*
-rm chrysopelea.*dis
-rm chrysopelea_subproc_out
+rm *.xin
+rm *.xout
+rm *.bl
