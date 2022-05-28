@@ -6,3 +6,4 @@ old/
 *.bl
 tests/test.avl
 *.ps
+*tags*
