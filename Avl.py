@@ -128,25 +128,26 @@ class Avl:
             self.constraints.pop(c)
         return operations
 
-    def execute(self, operations="", compute_stability=False, compute_moment_dist=False, compute_force_dist=False, plot_treffitz=False):
+    def execute(self, operations="", execute=True, compute_stability=False, compute_moment_dist=False, compute_force_dist=False, plot_treffitz=False):
         input_file = open('chrysopelea.avl','w')
         input_file.write(str(self))
         input_file.close()
         cmds = open('chrysopelea.ain','w')
         operations += self.operations_from_constraints()
-        operations += '\nx'
-        self.executed = True
-        if compute_stability:
-            operations += "\nST\n"
-            self.computed_stability = True
-        if compute_moment_dist:
-            operations += '\nvm\nchrysopelea.amdist'
-            self.computed_moment_dist = True
-        if compute_force_dist:
-            operations += '\nfs\nchrysopelea.afdist'
-            self.computed_force_dist = True
-        if plot_treffitz:
-            operations += "\nt\nh"
+        if execute:
+            operations += '\nx'
+            self.executed = True
+            if compute_stability:
+                operations += "\nST\n"
+                self.computed_stability = True
+            if compute_moment_dist:
+                operations += '\nvm\nchrysopelea.amdist'
+                self.computed_moment_dist = True
+            if compute_force_dist:
+                operations += '\nfs\nchrysopelea.afdist'
+                self.computed_force_dist = True
+            if plot_treffitz:
+                operations += "\nt\nh"
         operations += '\n'
         cmd_text = """
 load chrysopelea.avl
@@ -163,18 +164,18 @@ quit
         out_text = out.read()
         out.close()
 
-        if compute_moment_dist:
+        if self.computed_moment_dist:
             out = open("chrysopelea.amdist")
             self.moment_data = out.read()
             out.close()
-        if compute_force_dist:
+        if self.computed_force_dist:
             out = open("chrysopelea.afdist")
             self.force_data = out.read()
             out.close()
 
         self.output = out_text
 
-        if not (self.reynolds is None):
+        if execute and not (self.reynolds is None):
             for surf_name in self.surfaces.keys():
                 surf = self.surfaces[surf_name]
                 surf.set_reynolds()
@@ -189,7 +190,7 @@ quit
         operations = """
 g
 k"""
-        self.execute(operations)
+        self.execute(operations, execute=False)
 
     def pop(self, surfname):
         if surfname in self.surfaces:
