@@ -1,27 +1,27 @@
-from chrysopelea import *
+from Avl import *
 
-p = avl()
+p = Avl()
 
 m = Surface('Wing')
-m.add_naca((0,0,0),1)
-n = naca(position=(0.5,1,0),chord=0.25+0.75/2)
-n.add_control(Control('elevon',xhinge=0.3, signdup=-1))
-m.add_section(n)
-n = naca(position=(1,2,0),chord=0.25)
-n.add_control(Control('elevon',xhinge=0.3, signdup=-1))
-m.add_section(n)
-#m.add_naca((1.1, 2, 0.3), 0.2)
-p.add_surface(m)
+m.add_Section(Naca("0012", (0,0,0), 1))
+n = Naca("0012", position=(0.5,1,0), chord=0.25+0.75/2)
+n.add_Control(Control('elevon', xhinge=0.3, signdup=-1))
+m.add_Section(n)
+n = Naca("0012", position=(1,2,0), chord=0.25)
+n.add_Control(Control('elevon', xhinge=0.3, signdup=-1))
+m.add_Section(n)
+m.add_Section(Naca("0012", (1.1, 2, 0.3), 0.2))
+p.add_Surface(m)
 
 
-print(p.mean_aerodynamic_chord)
+print("MAC:", p.mean_aerodynamic_chord())
 p.draw()
-p.set_attitude(alpha=5)
-p.compute_force_dist = True
+p.set("a", "a 5")
 con = p.control_variables()['elevon']
 p.set(con, '{} -5'.format(con))
-print(p.CL,p.CDi,p.CL/p.CDi)
-print(p.Cl, p.Cm, p.Cn)
-#print(p.Cl_beta, p.Cm_alpha, p.Cn_beta)
-print(p.compute_Cl('Wing'))
-print(p.compute_Cn('Wing'))
+p.execute(compute_stability=True, compute_moment_dist=True)
+p.print_aerodynamics()
+print("Lift to drag ratio:", p.lift_coef()/p.induced_drag_coef())
+p.print_stability()
+p.plot_bending_moment()
+plt.show()

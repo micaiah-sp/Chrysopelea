@@ -14,16 +14,16 @@ class Avl:
   D<n>  <control surface>
 
     Constraint reference:
-       A    alpha       =   0.000    
-       B    beta        =   0.000    
-       R    pb/2V       =   0.000    
-       P    qc/2V       =   0.000    
-       Y    rb/2V       =   0.000    
-       C    CL          =   0.000    
-       S    CY          =   0.000    
-       RM   Cl roll mom =   0.000    
-       PM   Cm pitchmom =   0.000    
-       YM   Cn yaw  mom =   0.000    
+       A    alpha       =   0.000
+       B    beta        =   0.000
+       R    pb/2V       =   0.000
+       P    qc/2V       =   0.000
+       Y    rb/2V       =   0.000
+       C    CL          =   0.000
+       S    CY          =   0.000
+       RM   Cl roll mom =   0.000
+       PM   Cm pitchmom =   0.000
+       YM   Cn yaw  mom =   0.000
        D<n> <control>   =   0.000
 
     (use lowercase)
@@ -40,10 +40,10 @@ class Avl:
     name = "Chrysopelea"
 
     def __init__(self, geom_file=None):
-        self.compute_stability = False
-        self.compute_moment_dist = False
-        self.compute_force_dist = False
-        self.plot_treffitz = False
+        self.computed_stability = False
+        self.computed_moment_dist = False
+        self.computed_force_dist = False
+        self.executed = False
         self.surfaces = {}
         if not (geom_file is None):
             file_obj = open(geom_file)
@@ -128,20 +128,24 @@ class Avl:
             self.constraints.pop(c)
         return operations
 
-    def execute(self, operations=""):
-        input = open('chrysopelea.avl','w')
-        input.write(str(self))
-        input.close()
+    def execute(self, operations="", compute_stability=False, compute_moment_dist=False, compute_force_dist=False, plot_treffitz=False):
+        input_file = open('chrysopelea.avl','w')
+        input_file.write(str(self))
+        input_file.close()
         cmds = open('chrysopelea.ain','w')
         operations += self.operations_from_constraints()
         operations += '\nx'
-        if self.compute_stability:
-            operations += "\nST"
-        if self.compute_moment_dist:
+        self.executed = True
+        if compute_stability:
+            operations += "\nST\n"
+            self.computed_stability = True
+        if compute_moment_dist:
             operations += '\nvm\nchrysopelea.amdist'
-        if self.compute_force_dist:
+            self.computed_moment_dist = True
+        if compute_force_dist:
             operations += '\nfs\nchrysopelea.afdist'
-        if self.plot_treffitz:
+            self.computed_force_dist = True
+        if plot_treffitz:
             operations += "\nt\nh"
         operations += '\n'
         cmd_text = """
@@ -159,11 +163,11 @@ quit
         out_text = out.read()
         out.close()
 
-        if self.compute_moment_dist:
+        if compute_moment_dist:
             out = open("chrysopelea.amdist")
             self.moment_data = out.read()
             out.close()
-        if self.compute_force_dist:
+        if compute_force_dist:
             out = open("chrysopelea.afdist")
             self.force_data = out.read()
             out.close()
@@ -229,10 +233,12 @@ k"""
         try:
             text = re.split("{} *= *".format(variable),text)[1].split(' ')[0]
         except:
-            raise Exception("AVL not converged.")
+            raise Exception("Failed to obtain output variable.")
         return float(text)
 
     def moment_dist(self, surf=None):
+        if not self.computed_moment_dist:
+            raise Exception("`execute` method of this object must be invoked with `compute_moment_dist = True`.")
         if surf is None:
             surf = self.reference_surface()
         text = self.moment_data.split(surf.name)[1]
@@ -245,6 +251,8 @@ k"""
         return pd.read_csv(f)
 
     def force_dist(self, surf=None):
+        if not self.computed_force_dist:
+            raise Exception("`execute` method of this object must be invoked with `compute_force_dist = True`.")
         if surf is None:
             surf = self.reference_surface()
         text = self.force_data.split(surf.name)[1]
@@ -261,6 +269,8 @@ k"""
         return data
 
     def plot_bending_moment(self, surf=None):
+        if not self.computed_moment_dist:
+            raise Exception("`execute` method of this object must be invoked with `compute_moment_dist = True`.")
         if surf is None:
             surf = self.reference_surface()
         dist = self.moment_dist(surf)
@@ -269,25 +279,39 @@ k"""
         plt.ylabel('Moment per (unit span * unit area * unit dynamic pressure)')
         plt.title('Bending Moment for alpha = {}'.format(self.angle_of_attack()))
 
+    def assert_stability(self):
+        if not self.computed_stability:
+            raise Exception("`execute` method of this object must be invoked with `compute_stability = True`.")
+
+    def assert_executed(self):
+        if not self.executed:
+            raise Exception("`execute` method of this object must be invoked.")
+
     def Cl_beta(self):
+        self.assert_stability()
         return self.get_output('Clb')
 
     def Cm_alpha(self):
+        self.assert_stability()
         return self.get_output('Cma')
 
     def Cn_beta(self):
+        self.assert_stability()
         return self.get_output('Cnb')
 
     def CL_alpha(self):
+        self.assert_stability()
         return self.get_output('CLa')
 
     def aerodynamic_center(self):
         return -self.Cm_alpha()*self.reference_chord()/self.CL_alpha() + self.origin[0]
 
     def lift_coef(self):
+        self.assert_executed()
         return self.get_output('CLff')
 
     def induced_drag_coef(self):
+        self.assert_executed()
         return self.get_output('CDff')
 
     def drag_coef(self):
@@ -313,25 +337,30 @@ k"""
         print("moment_z: ", self.moment_z())
 
     def moment_x(self):
+        self.assert_executed()
         return self.get_output('Cltot')
 
     def moment_y(self):
+        self.assert_executed()
         return self.get_output('Cmtot')
 
     def moment_z(self):
+        self.assert_executed()
         return self.get_output('Cntot')
 
     def angle_of_attack(self):
+        self.assert_executed()
         return self.get_output('Alpha')
 
     def sideslip(self):
+        self.assert_executed()
         return self.get_output('Beta')
 
     def spanwise_efficiency(self):
+        self.assert_executed()
         return self.get_output('e')
 
     def scale(self, factor):
         self.origin = (self.origin[0]*factor, self.origin[1]*factor, self.origin[2]*factor)
         for s in self.surfaces.keys():
             self.surfaces[s].scale(factor)
-
