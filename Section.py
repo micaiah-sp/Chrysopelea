@@ -14,7 +14,7 @@ class Section:
                  incidence=0, sspace=1, nspan=10):
         self.controls = []
         self.coord_file = coord_file
-        self.position = position
+        self.position = tuple(position)
         self.chord = chord
         self.incidence = incidence
 
@@ -132,7 +132,7 @@ class Naca(Section):
     def __init__(self, desig, position=(0,0,0), chord=1, incidence=0, sspace=1, nspan=10):
         self.controls = []
         self.desig = desig
-        self.position = position
+        self.position = tuple(position)
         self.chord = chord
         self.sspace = sspace
         self.nspan = nspan
