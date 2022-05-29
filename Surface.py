@@ -8,8 +8,8 @@ class Surface:
     def __init__(self, name, cspace=1, nchord=5):
         self.sections = []
         self.name = name
-        self.cspace = 1
-        self.nchord = 5
+        self.cspace = cspace
+        self.nchord = nchord
 
     def add_Section(self, sec):
         sec.parent=self
