@@ -35,10 +35,10 @@ attributes `Avl.avl_cmd` and `Section.xfoil_cmd` respectively. Python dependenci
   - pandas
 
 ## Installation
-In order to use Chrysopelea, you just need to ensure that Python can find its files. In a bash shell, you can accomplish this by adding the Chrysopelea home directory to your
-`PYTHONPATH`. Alternatively, you can simply copy the all of the Chrysopelea files to the directory where you wish to write your analysis script.
-Once this is done, to verify that Chrysopelea functions properly, navigate to the directory `tests` and execute `python3 *.py`. You should see a bunch of aerodynamic data and no exceptions.
-
+In order to use Chrysopelea, you just need to ensure that Python can find its files.
+The way I do this is I have a directory (`~/programs/python`) that I added to my `PYTHONPATH` in which I install python codes.
+In this case, you can install Chrysopelea with the command `cp *.py ~/programs/python` (executed in the Chrysopelea root directory).
+Alternatively, you could add the Chrysopelea root directory to your `PYTHONPATH` or just copy the files to the directory where you want to use them.
 
 ## Documentation
 Documentation is in progress. For now, the file `tests/test_avl.py` demonstrates most of the important features. `tests/test_section.py` demonstrates how
